@@ -35,9 +35,25 @@
       <option name="presentableId" value="Default" />
       <updated>1611740978956</updated>
     </task>
+    <task id="LOCAL-00001" summary="initial commit.">
+      <created>1611868873812</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1611868873832</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="initial commit." />
+    <option name="LAST_COMMIT_MESSAGE" value="initial commit." />
+  </component>
   <component name="WindowStateProjectService">
+    <state x="249" y="23" key="CommitChangelistDialog2" timestamp="1611868872993">
+      <screen x="0" y="23" width="1440" height="827" />
+    </state>
+    <state x="249" y="23" key="CommitChangelistDialog2/0.23.1440.827@0.23.1440.827" timestamp="1611868872992" />
     <state width="1358" height="200" key="GridCell.Tab.0.bottom" timestamp="1611868015311">
       <screen x="0" y="23" width="1440" height="827" />
     </state>
@@ -54,5 +70,9 @@
       <screen x="0" y="23" width="1440" height="827" />
     </state>
     <state width="1358" height="200" key="GridCell.Tab.0.right/0.23.1440.827@0.23.1440.827" timestamp="1611868015311" />
+    <state x="291" y="176" key="Vcs.Push.Dialog.v2" timestamp="1611868877218">
+      <screen x="0" y="23" width="1440" height="827" />
+    </state>
+    <state x="291" y="176" key="Vcs.Push.Dialog.v2/0.23.1440.827@0.23.1440.827" timestamp="1611868877218" />
   </component>
 </project>
