@@ -16,13 +16,17 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    //call in init state;
     initAutoStart();
   }
 
+  //initializing the autoStart with the first build.
   Future<void> initAutoStart() async {
     try {
+      //check auto-start availability.
       var test = await AutoStartFlutter.isAutoStartAvailable;
       print(test);
+      //if available then navigate to auto-start setting page.
       if (test) await AutoStartFlutter.getAutoStartPermission();
     } on PlatformException catch (e) {
       print(e);
