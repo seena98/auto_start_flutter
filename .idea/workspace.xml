@@ -4,8 +4,8 @@
     <list default="true" id="33bdcd0f-a5c1-48da-9af5-4b4492517e6b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CHANGELOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/CHANGELOG.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/src/main/java/co/techFlow/auto_start_flutter/AutoStartFlutterPlugin.java" beforeDir="false" afterPath="$PROJECT_DIR$/android/src/main/java/co/techFlow/auto_start_flutter/AutoStartFlutterPlugin.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/example/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/example/lib/main.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/example/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/example/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/auto_start_flutter.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/auto_start_flutter.dart" afterDir="false" />
@@ -16,7 +16,7 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[533e97b0]" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -58,17 +58,26 @@
       <option name="project" value="LOCAL" />
       <updated>1611869233748</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Improvements">
+      <created>1611878772524</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1611878772525</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial commit." />
-    <option name="LAST_COMMIT_MESSAGE" value="initial commit." />
+    <MESSAGE value="Improvements" />
+    <option name="LAST_COMMIT_MESSAGE" value="Improvements" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="249" y="23" key="CommitChangelistDialog2" timestamp="1611869233497">
-      <screen x="0" y="23" width="1440" height="827" />
+    <state x="249" y="23" key="CommitChangelistDialog2" timestamp="1611878772074">
+      <screen x="0" y="23" width="1440" height="826" />
     </state>
+    <state x="249" y="23" key="CommitChangelistDialog2/0.23.1440.826@0.23.1440.826" timestamp="1611878772074" />
     <state x="249" y="23" key="CommitChangelistDialog2/0.23.1440.827@0.23.1440.827" timestamp="1611869233497" />
     <state width="1358" height="200" key="GridCell.Tab.0.bottom" timestamp="1611870134802">
       <screen x="0" y="23" width="1440" height="827" />
@@ -86,9 +95,10 @@
       <screen x="0" y="23" width="1440" height="827" />
     </state>
     <state width="1358" height="200" key="GridCell.Tab.0.right/0.23.1440.827@0.23.1440.827" timestamp="1611870134801" />
-    <state x="291" y="176" key="Vcs.Push.Dialog.v2" timestamp="1611869253629">
-      <screen x="0" y="23" width="1440" height="827" />
+    <state x="291" y="176" key="Vcs.Push.Dialog.v2" timestamp="1611878776215">
+      <screen x="0" y="23" width="1440" height="826" />
     </state>
+    <state x="291" y="176" key="Vcs.Push.Dialog.v2/0.23.1440.826@0.23.1440.826" timestamp="1611878776215" />
     <state x="291" y="176" key="Vcs.Push.Dialog.v2/0.23.1440.827@0.23.1440.827" timestamp="1611869253629" />
   </component>
 </project>

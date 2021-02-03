@@ -10,6 +10,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.BinaryMessenger;
+import android.provider.Settings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -79,7 +80,9 @@ public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler 
         intent.setComponent(new ComponentName("com.evenwell.powersaving.g3", "com.evenwell.powersaving.g3.exception.PowerSaverExceptionActivity"));
       }else if ("asus".equalsIgnoreCase(manufacturer)) {
         intent.setComponent(new ComponentName("com.asus.mobilemanager", "com.asus.mobilemanager.autostart.AutoStartActivy"));
-      }
+      } else if ("realme".equalsIgnoreCase(manufacturer)) {
+        intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+    }
 
       List<ResolveInfo> list = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
       if  (list.size() > 0) {

@@ -24,10 +24,10 @@ class _MyAppState extends State<MyApp> {
   Future<void> initAutoStart() async {
     try {
       //check auto-start availability.
-      var test = await AutoStartFlutter.isAutoStartAvailable;
+      var test = await isAutoStartAvailable;
       print(test);
       //if available then navigate to auto-start setting page.
-      if (test) await AutoStartFlutter.getAutoStartPermission();
+      if (test) await getAutoStartPermission();
     } on PlatformException catch (e) {
       print(e);
     }

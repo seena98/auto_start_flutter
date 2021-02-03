@@ -13,3 +13,11 @@
 ## 0.0.4
 
 * fixed homepage link and documentation.
+
+## 0.0.5
+
+* fixed plugin calling problems and deleted static values.
+
+## 0.0.6
+
+* added support for RealMe Phones.
