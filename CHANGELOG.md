@@ -21,3 +21,15 @@
 ## 0.0.6
 
 * added support for RealMe Phones.
+
+## 0.0.7-nullsafety.0
+
+* added support for null safety
+
+## 0.0.8-nullsafety
+
+* added support for null safety
+
+## 0.1.0-nullsafety
+
+* added support for null safety

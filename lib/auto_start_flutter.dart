@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/services.dart';
 
 ///initial AutoStart Class
@@ -6,10 +7,10 @@ const MethodChannel _channel =
     const MethodChannel('com.techflow.co/auto_start_flutter');
 
 /// It checks if the phone has auto-start function.
-Future<bool> get isAutoStartAvailable async {
+Future<bool?> get isAutoStartAvailable async {
   ///check availability
   //auto start availability
-  final bool isAutoStartAvailable =
+  final bool? isAutoStartAvailable =
       await _channel.invokeMethod('isAutoStartPermission');
   return isAutoStartAvailable;
 }
@@ -18,7 +19,7 @@ Future<bool> get isAutoStartAvailable async {
 Future<void> getAutoStartPermission() async {
   try {
     await _channel.invokeMethod("permit-auto-start");
-  } on PlatformException catch (e) {
+  } catch (e) {
     print(e);
   }
 }
