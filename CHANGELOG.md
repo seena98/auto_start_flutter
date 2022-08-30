@@ -33,3 +33,7 @@
 ## 0.1.0-nullsafety
 
 * added support for null safety
+
+## 0.1.1-nullsafety
+
+* Fixed IOS runtime problem
