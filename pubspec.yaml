@@ -8,8 +8,8 @@ repository: https://github.com/seena98/auto_start_flutter
 
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=2.2.1"
+  sdk: ">=3.1.0 <4.0.0"
+  flutter: ">=3.1.1"
 
 dependencies:
   flutter:
