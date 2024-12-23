@@ -41,3 +41,7 @@
 ## 0.1.2-nullsafety
 
 * Fixed android runtime problem
+
+## 0.1.3-nullsafety
+
+* Added support for huawei, honor, poco, xiaomi, redmi, letv phones
