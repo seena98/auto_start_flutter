@@ -1,4 +1,4 @@
-package android.src.main.java.co.techFlow.auto_start_flutter;
+package co.techFlow.auto_start_flutter;
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -18,7 +18,6 @@ import android.content.ComponentName;
 import java.util.*;
 import android.content.pm.ResolveInfo;
 import android.util.Log;
-import com.judemanutd.autostarter.AutoStartPermissionHelper;
 
 /** AutoStartFlutterPlugin */
 public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler {
@@ -45,7 +44,38 @@ public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler 
     if(call.method.equals("permit-auto-start")){
       addAutoStartup();
     } else  if (call.method.equals("isAutoStartPermission")) {
-      result.success(AutoStartPermissionHelper.getInstance().isAutoStartPermissionAvailable(context));
+      String manufacturer = android.os.Build.MANUFACTURER;
+      if ("xiaomi".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      } else if ("poco".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      } else if ("redmi".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      } else if ("letv".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      } else if ("oppo".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      } else if ("vivo".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      } else if ("letv".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      } else if ("honor".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      } else if ("huawei".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      }else if ("samsung".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      }else if ("oneplus".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      }else if ("nokia".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      }else if ("asus".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      } else if ("realme".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
+      }else{
+        result.success(false);
+      }
     }else {
       result.notImplemented();
     }

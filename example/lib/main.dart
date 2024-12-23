@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> initAutoStart() async {
     try {
       //check auto-start availability.
-      var test = await (isAutoStartAvailable as FutureOr<bool>);
+      var test =  (await isAutoStartAvailable)??false;
       print(test);
       //if available then navigate to auto-start setting page.
       if (test) await getAutoStartPermission();
