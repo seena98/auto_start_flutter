@@ -1,7 +1,7 @@
 name: auto_start_flutter
 description: The plugin redirects the user to auto-start permission screen to allow auto-start and fix
   background problems in some phones.
-version: 0.1.1
+version: 0.1.3
 homepage: https://github.com/seena98/auto_start_flutter
 repository: https://github.com/seena98/auto_start_flutter
 #authors:  [Seena Ashr]
