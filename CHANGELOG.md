@@ -37,3 +37,7 @@
 ## 0.1.1-nullsafety
 
 * Fixed IOS runtime problem
+
+## 0.1.2-nullsafety
+
+* Fixed android runtime problem
