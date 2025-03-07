@@ -1,28 +1,20 @@
-## 0.0.1
+## 0.1.4-nullsafety
 
-* It's the initial release.
+* Fixed android run issues
 
-## 0.0.2
+## 0.1.3-nullsafety
 
-* fixed documentation problems.
+* Added support for huawei, honor, poco, xiaomi, redmi, letv phones
 
-## 0.0.3
+## 0.1.2-nullsafety
 
-* fixed homepage link.
+* Fixed android runtime problem
 
-## 0.0.4
+## 0.1.1-nullsafety
 
-* fixed homepage link and documentation.
+* Fixed IOS runtime problem
 
-## 0.0.5
-
-* fixed plugin calling problems and deleted static values.
-
-## 0.0.6
-
-* added support for RealMe Phones.
-
-## 0.0.7-nullsafety.0
+## 0.1.0-nullsafety
 
 * added support for null safety
 
@@ -30,18 +22,35 @@
 
 * added support for null safety
 
-## 0.1.0-nullsafety
+## 0.0.7-nullsafety.0
 
 * added support for null safety
 
-## 0.1.1-nullsafety
+## 0.0.6
 
-* Fixed IOS runtime problem
+* added support for RealMe Phones.
 
-## 0.1.2-nullsafety
+## 0.0.5
 
-* Fixed android runtime problem
+* fixed plugin calling problems and deleted static values.
 
-## 0.1.3-nullsafety
+## 0.0.4
 
-* Added support for huawei, honor, poco, xiaomi, redmi, letv phones
+* fixed homepage link and documentation.
+
+## 0.0.3
+
+* fixed homepage link.
+
+## 0.0.2
+
+* fixed documentation problems.
+
+## 0.0.1
+
+* It's the initial release.
+
+
+
+
+
