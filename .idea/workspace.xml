@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="33bdcd0f-a5c1-48da-9af5-4b4492517e6b" name="Default Changelist" comment="fix: add .idea/ to .gitignore">
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/markdown.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CHANGELOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/CHANGELOG.md" afterDir="false" />
-    </list>
+    <list default="true" id="33bdcd0f-a5c1-48da-9af5-4b4492517e6b" name="Default Changelist" comment="fix: update .gitignore and add migration XML files" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -156,7 +148,23 @@
       <option name="project" value="LOCAL" />
       <updated>1763551412041</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="chore: update version to 0.1.5 and fix android run issues">
+      <option name="closed" value="true" />
+      <created>1763551509571</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1763551509571</updated>
+    </task>
+    <task id="LOCAL-00013" summary="fix: update .gitignore and add migration XML files">
+      <option name="closed" value="true" />
+      <created>1763551556862</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1763551556862</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -192,7 +200,9 @@
     <MESSAGE value="fixed issues and added support for other phones" />
     <MESSAGE value="fixed flutter version" />
     <MESSAGE value="fix: add .idea/ to .gitignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: add .idea/ to .gitignore" />
+    <MESSAGE value="chore: update version to 0.1.5 and fix android run issues" />
+    <MESSAGE value="fix: update .gitignore and add migration XML files" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: update .gitignore and add migration XML files" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
