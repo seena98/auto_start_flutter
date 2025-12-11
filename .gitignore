@@ -8,3 +8,5 @@
 build/
 !/.idea/
 !/.idea/deviceManager.xml
+!/.idea/workspace.xml
+!/.idea/caches/deviceStreaming.xml
