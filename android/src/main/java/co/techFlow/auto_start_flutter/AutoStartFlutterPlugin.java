@@ -73,6 +73,8 @@ public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler 
         result.success(true);
       } else if ("realme".equalsIgnoreCase(manufacturer)) {
         result.success(true);
+      } else if ("infinix".equalsIgnoreCase(manufacturer)) {
+        result.success(true);
       } else {
         result.success(false);
       }
@@ -173,6 +175,22 @@ public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler 
     } else if ("oneplus".equals(manufacturerLower)) {
       intents.add(new Intent().setComponent(new ComponentName("com.oneplus.security",
           "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity")));
+      // Newer OnePlus devices (ColorOS based like OnePlus Ace) might use Oppo intents
+      intents.add(new Intent().setComponent(new ComponentName("com.coloros.safecenter",
+          "com.coloros.safecenter.permission.startup.StartupAppListActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.startupapp.StartupAppListActivity")));
+      intents.add(new Intent()
+          .setComponent(new ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.coloros.safe", "com.coloros.safe.permission.startup.StartupAppListActivity")));
+      intents.add(new Intent()
+          .setComponent(new ComponentName("com.coloros.safe", "com.coloros.safe.permission.startup.FakeActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.FakeActivity")));
+    } else if ("infinix".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.transsion.phonemaster", "com.cyin.himgr.autostart.AutoStartActivity")));
     } else if ("nokia".equals(manufacturerLower)) {
       intents.add(new Intent().setComponent(new ComponentName("com.evenwell.powersaving.g3",
           "com.evenwell.powersaving.g3.exception.PowerSaverExceptionActivity")));

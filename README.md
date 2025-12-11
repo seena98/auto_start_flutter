@@ -6,7 +6,7 @@ A Flutter plugin to help manage background execution permissions on Android devi
 
 - **Auto-Start Permission**: Open the manufacturer-specific "Auto-Start" or "App Launch" settings.
 - **Battery Optimization**: Check if the app is exempt from battery optimizations and open settings to request exemption.
-- **Device Support**: targeted support for Xiaomi, Redmi, Poco, Oppo, Vivo, Huawei, Honor, Samsung, ASUS, OnePlus, Nokia, LeTV, Meizu, HTC, and more.
+- **Device Support**: targeted support for Xiaomi, Redmi, Poco, Oppo, Vivo, Huawei, Honor, Samsung, ASUS, OnePlus, Nokia, LeTV, Meizu, HTC, Infinix, and more.
 - **Robustness**: The plugin attempts multiple known intents for each manufacturer to ensure the settings page opens correctly.
 
 [![pub package](https://img.shields.io/pub/v/http.svg)](https://pub.dev/packages/auto_start_flutter)
@@ -17,7 +17,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  auto_start_flutter: ^0.1.5
+  auto_start_flutter: ^0.1.7
 ```
 
 Import the package:

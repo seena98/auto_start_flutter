@@ -1,3 +1,7 @@
+## 0.1.7-nullsafety
+
+* Added support for Infinix and OnePlus Ace Devices.
+
 ## 0.1.6-nullsafety
 
 * Added Battery Optimization support and refined auto start process for some phones.
