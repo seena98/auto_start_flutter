@@ -1,3 +1,8 @@
+## 0.1.6-nullsafety
+
+* Added Battery Optimization support and refined auto start process for some phones.
+
+
 ## 0.1.5-nullsafety
 
 * Fixed android run issues
