@@ -3,10 +3,7 @@ buildscript {
         google()
         jcenter()
     }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.3.0'
-    }
+    dependencies {}
 }
 
 allprojects {

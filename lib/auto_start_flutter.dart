@@ -23,3 +23,19 @@ Future<void> getAutoStartPermission() async {
     print(e);
   }
 }
+
+/// Check if battery optimization is disabled
+Future<bool?> get isBatteryOptimizationDisabled async {
+  final bool? isBatteryOptimizationDisabled =
+      await _channel.invokeMethod('isBatteryOptimizationDisabled');
+  return isBatteryOptimizationDisabled;
+}
+
+/// Open battery optimization settings
+Future<void> disableBatteryOptimization() async {
+  try {
+    await _channel.invokeMethod("disableBatteryOptimization");
+  } catch (e) {
+    print(e);
+  }
+}

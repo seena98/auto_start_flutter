@@ -17,6 +17,8 @@ import android.content.ComponentName;
 import java.util.*;
 import android.content.pm.ResolveInfo;
 import android.util.Log;
+import android.os.PowerManager;
+import android.net.Uri;
 
 /** AutoStartFlutterPlugin */
 public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler {
@@ -24,10 +26,9 @@ public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler 
   private MethodChannel channel;
   private Context context;
 
-
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-    onAttach(flutterPluginBinding.getApplicationContext(),flutterPluginBinding.getBinaryMessenger());
+    onAttach(flutterPluginBinding.getApplicationContext(), flutterPluginBinding.getBinaryMessenger());
     channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "com.techflow.co/auto_start_flutter");
     channel.setMethodCallHandler(this);
   }
@@ -40,9 +41,9 @@ public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler 
 
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-    if(call.method.equals("permit-auto-start")){
+    if (call.method.equals("permit-auto-start")) {
       addAutoStartup();
-    } else  if (call.method.equals("isAutoStartPermission")) {
+    } else if (call.method.equals("isAutoStartPermission")) {
       String manufacturer = android.os.Build.MANUFACTURER;
       if ("xiaomi".equalsIgnoreCase(manufacturer)) {
         result.success(true);
@@ -62,20 +63,35 @@ public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler 
         result.success(true);
       } else if ("huawei".equalsIgnoreCase(manufacturer)) {
         result.success(true);
-      }else if ("samsung".equalsIgnoreCase(manufacturer)) {
+      } else if ("samsung".equalsIgnoreCase(manufacturer)) {
         result.success(true);
-      }else if ("oneplus".equalsIgnoreCase(manufacturer)) {
+      } else if ("oneplus".equalsIgnoreCase(manufacturer)) {
         result.success(true);
-      }else if ("nokia".equalsIgnoreCase(manufacturer)) {
+      } else if ("nokia".equalsIgnoreCase(manufacturer)) {
         result.success(true);
-      }else if ("asus".equalsIgnoreCase(manufacturer)) {
+      } else if ("asus".equalsIgnoreCase(manufacturer)) {
         result.success(true);
       } else if ("realme".equalsIgnoreCase(manufacturer)) {
         result.success(true);
-      }else{
+      } else {
         result.success(false);
       }
-    }else {
+    } else if (call.method.equals("isBatteryOptimizationDisabled")) {
+      PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+      String packageName = context.getPackageName();
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        result.success(pm.isIgnoringBatteryOptimizations(packageName));
+      } else {
+        result.success(true); // Optimization not applicable below M
+      }
+    } else if (call.method.equals("disableBatteryOptimization")) {
+      Intent intent = new Intent();
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+      }
+    } else {
       result.notImplemented();
     }
   }
@@ -85,48 +101,108 @@ public class AutoStartFlutterPlugin implements FlutterPlugin, MethodCallHandler 
     channel.setMethodCallHandler(null);
   }
 
-
   private void addAutoStartup() {
     try {
-      Intent intent = new Intent();
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       String manufacturer = android.os.Build.MANUFACTURER;
-      if ("xiaomi".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"));
-      } else if ("poco".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"));
-      } else if ("redmi".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"));
-      } else if ("letv".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.letv.android.letvsafe", "com.letv.android.letvsafe.AutobootManageActivity"));
-      } else if ("oppo".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity"));
-      } else if ("vivo".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.vivo.permissionmanager", "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"));
-      } else if ("letv".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.letv.android.letvsafe", "com.letv.android.letvsafe.AutobootManageActivity"));
-      } else if ("honor".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity"));
-      } else if ("huawei".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"));
-      }else if ("samsung".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.samsung.android.lool", "com.samsung.android.sm.battery.ui.BatteryActivity"));
-      }else if ("oneplus".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.oneplus.security", "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity"));
-      }else if ("nokia".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.evenwell.powersaving.g3", "com.evenwell.powersaving.g3.exception.PowerSaverExceptionActivity"));
-      }else if ("asus".equalsIgnoreCase(manufacturer)) {
-        intent.setComponent(new ComponentName("com.asus.mobilemanager", "com.asus.mobilemanager.autostart.AutoStartActivy"));
-      } else if ("realme".equalsIgnoreCase(manufacturer)) {
-        intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-    }
+      List<Intent> intents = getIntentsForManufacturer(manufacturer);
 
-      List<ResolveInfo> list = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-      if  (list.size() > 0) {
-        context.startActivity(intent);
+      for (Intent intent : intents) {
+        try {
+          List<ResolveInfo> list = context.getPackageManager().queryIntentActivities(intent,
+              PackageManager.MATCH_DEFAULT_ONLY);
+          if (list.size() > 0) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            break; // Successfully opened an activity, stop trying others
+          }
+        } catch (Exception e) {
+          Log.e("AutoStartFlutter", "Failed to start intent: " + e.getMessage());
+        }
       }
     } catch (Exception e) {
-      Log.e("exc" , String.valueOf(e));
+      Log.e("exc", String.valueOf(e));
     }
+  }
+
+  private List<Intent> getIntentsForManufacturer(String manufacturer) {
+    List<Intent> intents = new ArrayList<>();
+    if (manufacturer == null)
+      return intents;
+
+    String manufacturerLower = manufacturer.toLowerCase();
+
+    if ("xiaomi".equals(manufacturerLower) || "redmi".equals(manufacturerLower) || "poco".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity")));
+      intents.add(new Intent()
+          .setComponent(new ComponentName("com.miui.securitycenter", "com.miui.powercenter.PowerSettings")));
+    } else if ("oppo".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(new ComponentName("com.coloros.safecenter",
+          "com.coloros.safecenter.permission.startup.StartupAppListActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.startupapp.StartupAppListActivity")));
+      intents.add(new Intent()
+          .setComponent(new ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.coloros.safe", "com.coloros.safe.permission.startup.StartupAppListActivity")));
+      intents.add(new Intent()
+          .setComponent(new ComponentName("com.coloros.safe", "com.coloros.safe.permission.startup.FakeActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.FakeActivity")));
+    } else if ("vivo".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(new ComponentName("com.vivo.permissionmanager",
+          "com.vivo.permissionmanager.activity.BgStartUpManagerActivity")));
+      intents.add(new Intent()
+          .setComponent(new ComponentName("com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity")));
+      intents.add(new Intent()
+          .setComponent(new ComponentName("com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.BgStartUpManager")));
+    } else if ("huawei".equals(manufacturerLower) || "honor".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(new ComponentName("com.huawei.systemmanager",
+          "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity")));
+      intents.add(new Intent().setComponent(new ComponentName("com.huawei.systemmanager",
+          "com.huawei.systemmanager.appcontrol.activity.StartupAppControlActivity")));
+    } else if ("samsung".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.samsung.android.lool", "com.samsung.android.sm.battery.ui.BatteryActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.samsung.android.sm", "com.samsung.android.sm.ui.battery.BatteryActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity")));
+    } else if ("oneplus".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(new ComponentName("com.oneplus.security",
+          "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity")));
+    } else if ("nokia".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(new ComponentName("com.evenwell.powersaving.g3",
+          "com.evenwell.powersaving.g3.exception.PowerSaverExceptionActivity")));
+    } else if ("asus".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.asus.mobilemanager", "com.asus.mobilemanager.autostart.AutoStartActivity")));
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.asus.mobilemanager", "com.asus.mobilemanager.autostart.AutoStartActivy"))); // Keep old
+                                                                                                             // typo
+                                                                                                             // just in
+                                                                                                             // case
+      intents.add(new Intent()
+          .setComponent(new ComponentName("com.asus.mobilemanager", "com.asus.mobilemanager.entry.FunctionActivity")));
+    } else if ("letv".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.letv.android.letvsafe", "com.letv.android.letvsafe.AutobootManageActivity")));
+    } else if ("meizu".equals(manufacturerLower)) {
+      intents.add(
+          new Intent().setComponent(new ComponentName("com.meizu.safe", "com.meizu.safe.permission.SmartBGActivity")));
+      intents.add(new Intent()
+          .setComponent(new ComponentName("com.meizu.safe", "com.meizu.safe.permission.PermissionAppActivity")));
+    } else if ("htc".equals(manufacturerLower)) {
+      intents.add(new Intent().setComponent(
+          new ComponentName("com.htc.pitroad", "com.htc.pitroad.landingpage.activity.LandingPageActivity")));
+    } else if ("realme".equals(manufacturerLower)) {
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        intents.add(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+      }
+    }
+
+    return intents;
   }
 }

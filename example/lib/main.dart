@@ -13,10 +13,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  String _batteryOptimizationStatus = "Unknown";
+
   @override
   void initState() {
     super.initState();
-    //call in init state;
     initAutoStart();
   }
 
@@ -24,14 +25,26 @@ class _MyAppState extends State<MyApp> {
   Future<void> initAutoStart() async {
     try {
       //check auto-start availability.
-      var test =  (await isAutoStartAvailable)??false;
-      print(test);
+      var isAvailable = (await isAutoStartAvailable) ?? false;
+      print("Auto start available: $isAvailable");
       //if available then navigate to auto-start setting page.
-      if (test) await getAutoStartPermission();
+      if (isAvailable) await getAutoStartPermission();
     } on PlatformException catch (e) {
       print(e);
     }
     if (!mounted) return;
+  }
+
+  Future<void> _checkBatteryOptimization() async {
+    bool? isDisabled = await isBatteryOptimizationDisabled;
+    setState(() {
+      _batteryOptimizationStatus =
+          isDisabled == true ? "Disabled (Good)" : "Enabled (Bad)";
+    });
+  }
+
+  Future<void> _disableBatteryOptimization() async {
+    await disableBatteryOptimization();
   }
 
   @override
@@ -42,7 +55,23 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Auto Start Flutter Example'),
         ),
         body: Center(
-          child: Text("Auto Start initialize..."),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Auto Start initialize..."),
+              SizedBox(height: 20),
+              Text("Battery Optimization: $_batteryOptimizationStatus"),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _checkBatteryOptimization,
+                child: Text("Check Battery Optimization"),
+              ),
+              ElevatedButton(
+                onPressed: _disableBatteryOptimization,
+                child: Text("Disable Battery Optimization"),
+              ),
+            ],
+          ),
         ),
       ),
     );
