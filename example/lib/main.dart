@@ -7,18 +7,38 @@ void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: HomePage(),
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   String _batteryOptimizationStatus = "Unknown";
+  String _manufacturer = "Unknown";
 
   @override
   void initState() {
     super.initState();
     initAutoStart();
+    _getManufacturer();
+  }
+
+  Future<void> _getManufacturer() async {
+    String? manufacturer = await getDeviceManufacturer();
+    if (manufacturer != null) {
+      setState(() {
+        _manufacturer = manufacturer;
+      });
+    }
   }
 
   //initializing the autoStart with the first build.
@@ -28,7 +48,10 @@ class _MyAppState extends State<MyApp> {
       var isAvailable = (await isAutoStartAvailable) ?? false;
       print("Auto start available: $isAvailable");
       //if available then navigate to auto-start setting page.
-      if (isAvailable) await getAutoStartPermission();
+      if (isAvailable) {
+         bool success = await getAutoStartPermission();
+         print("Auto start permission open success: $success");
+      }
     } on PlatformException catch (e) {
       print(e);
     }
@@ -46,32 +69,51 @@ class _MyAppState extends State<MyApp> {
   Future<void> _disableBatteryOptimization() async {
     await disableBatteryOptimization();
   }
+  
+  Future<void> _openAutoStart() async {
+    bool success = await getAutoStartPermission();
+    if (!success) {
+      // Now this context is below MaterialApp, so ScaffoldMessenger works.
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Could not open Auto-Start settings directly.")));
+    }
+  }
+
+  Future<void> _openAppInfo() async {
+    await openAppInfo();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Auto Start Flutter Example'),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("Auto Start initialize..."),
-              SizedBox(height: 20),
-              Text("Battery Optimization: $_batteryOptimizationStatus"),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _checkBatteryOptimization,
-                child: Text("Check Battery Optimization"),
-              ),
-              ElevatedButton(
-                onPressed: _disableBatteryOptimization,
-                child: Text("Disable Battery Optimization"),
-              ),
-            ],
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Auto Start Flutter Example'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("Manufacturer: $_manufacturer"),
+            SizedBox(height: 20),
+            Text("Battery Optimization: $_batteryOptimizationStatus"),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _checkBatteryOptimization,
+              child: Text("Check Battery Optimization"),
+            ),
+            ElevatedButton(
+              onPressed: _disableBatteryOptimization,
+              child: Text("Disable Battery Optimization"),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _openAutoStart,
+              child: Text("Open Auto Start Settings"),
+            ),
+            ElevatedButton(
+              onPressed: _openAppInfo,
+              child: Text("Open App Info"),
+            ),
+          ],
         ),
       ),
     );

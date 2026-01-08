@@ -17,7 +17,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  auto_start_flutter: ^0.1.7
+  auto_start_flutter: ^0.2.0
 ```
 
 Import the package:
@@ -30,15 +30,33 @@ import 'package:auto_start_flutter/auto_start_flutter.dart';
 ### Auto-Start Permission
 Many Android manufacturers (Xiaomi, Oppo, Vivo, etc.) have a custom "Auto-Start" permission that prevents apps from starting in the background by default.
 
-1. **Check Availability**: Check if the current device requires this permission.
+1. **Check Availability**: Check if the current device has a known "Auto-Start" setting.
     ```dart
     bool isAvailable = await isAutoStartAvailable ?? false;
     ```
 2. **Request Permission**: If available, navigate the user to the settings page.
     ```dart
     if (isAvailable) {
-      await getAutoStartPermission();
+      bool success = await getAutoStartPermission();
+      if (success) {
+        // Successfully opened Auto-Start settings
+      } else {
+        // Failed to open Auto-Start settings, usually because the specific intent wasn't found.
+        // You might want to fallback to App Info.
+        await openAppInfo();
+      }
     }
+    ```
+
+3. **Fallback & Customization**: You can also check the manufacturer to show specific instructions or use the generic App Info page as a fallback.
+    ```dart
+    String? manufacturer = await getDeviceManufacturer();
+    if (manufacturer == "xiaomi") {
+      // Show specific instructions for Xiaomi users
+    }
+    
+    // Open standard App Info page
+    await openAppInfo();
     ```
 
 ### Battery Optimization

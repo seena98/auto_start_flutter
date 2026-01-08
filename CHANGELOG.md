@@ -1,3 +1,13 @@
+## 0.2.0
+* **Breaking Change**: Migrated Android plugin to Kotlin. Ensure your project supports Kotlin.
+* `getAutoStartPermission` now returns `Future<bool>` indicating if the settings page was successfully opened.
+* Added `openAppInfo` method as a fallback to open system App Info settings.
+* Added `getDeviceManufacturer` method to identify the device manufacturer.
+* Added support for Transsion devices (Tecno, Infinix, Itel).
+* Added support for newer OnePlus devices (ColorOS based).
+* Added support for Meizu and Letv.
+* Improved intent handling robustness.
+
 ## 0.1.7-nullsafety
 
 * Added support for Infinix and OnePlus Ace Devices.

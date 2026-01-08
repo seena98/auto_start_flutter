@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 
@@ -15,12 +16,35 @@ Future<bool?> get isAutoStartAvailable async {
   return isAutoStartAvailable;
 }
 
-///It navigates to settings => auto-start option where users can manually enable auto-start. It's not possible to check if user has turned on this option or not.
-Future<void> getAutoStartPermission() async {
+///It navigates to settings => auto-start option where users can manually enable auto-start.
+///Returns [true] if the settings page was opened, [false] otherwise.
+Future<bool> getAutoStartPermission() async {
   try {
-    await _channel.invokeMethod("permit-auto-start");
+    final bool? success = await _channel.invokeMethod("permit-auto-start");
+    return success ?? false;
   } catch (e) {
     print(e);
+    return false;
+  }
+}
+
+/// Open the App Info page in system settings.
+/// This is useful as a fallback if specific auto-start settings cannot be opened.
+Future<void> openAppInfo() async {
+  try {
+    await _channel.invokeMethod("openAppInfo");
+  } catch (e) {
+    print(e);
+  }
+}
+
+/// Get the device manufacturer name.
+Future<String?> getDeviceManufacturer() async {
+  try {
+    return await _channel.invokeMethod("getDeviceManufacturer");
+  } catch (e) {
+    print(e);
+    return null;
   }
 }
 
