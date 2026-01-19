@@ -1,3 +1,6 @@
+## 0.2.1
+* Added specific intents for Honor devices (`com.hihonor.systemmanager`).
+
 ## 0.2.0
 * **Breaking Change**: Migrated Android plugin to Kotlin. Ensure your project supports Kotlin.
 * `getAutoStartPermission` now returns `Future<bool>` indicating if the settings page was successfully opened.
