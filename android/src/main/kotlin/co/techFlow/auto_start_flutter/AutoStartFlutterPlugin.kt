@@ -33,7 +33,7 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
                 // We return true if the manufacturer is one we have intents for.
                 // It's a best-guess "is this feature relevant?" check.
                 val manufacturer = Build.MANUFACTURER.lowercase()
-                val knownManufacturers = listOf("xiaomi", "redmi", "poco", "oppo", "vivo", "huawei", "honor", "samsung", "oneplus", "nokia", "asus", "letv", "meizu", "htc", "realme", "infinix", "tecno", "itel")
+                val knownManufacturers = listOf("xiaomi", "redmi", "poco", "oppo", "vivo", "huawei", "honor", "samsung", "oneplus", "nokia", "asus", "letv", "meizu", "htc", "realme", "infinix", "tecno", "itel", "lenovo", "zte", "nubia")
                 result.success(knownManufacturers.contains(manufacturer))
             }
             "isBatteryOptimizationDisabled" -> {
@@ -66,6 +66,23 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
             }
             "getDeviceManufacturer" -> {
                 result.success(Build.MANUFACTURER)
+            }
+            "openCustomSetting" -> {
+                val packageName = call.argument<String>("packageName")
+                val activityName = call.argument<String>("activityName")
+                if (packageName != null && activityName != null) {
+                    try {
+                        val intent = Intent()
+                        intent.component = android.content.ComponentName(packageName, activityName)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        context.startActivity(intent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.success(false)
+                    }
+                } else {
+                    result.error("INVALID_ARGUMENT", "Package name and activity name must not be null", null)
+                }
             }
             else -> {
                 result.notImplemented()

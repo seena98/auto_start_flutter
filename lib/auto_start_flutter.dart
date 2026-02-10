@@ -47,6 +47,24 @@ Future<String?> getDeviceManufacturer() async {
   }
 }
 
+/// Open a custom setting by package name and activity name.
+/// This allows trying specific intents that are not yet natively supported by the plugin.
+Future<bool> openCustomSetting({
+  required String packageName,
+  required String activityName,
+}) async {
+  try {
+    final bool? success = await _channel.invokeMethod('openCustomSetting', {
+      'packageName': packageName,
+      'activityName': activityName,
+    });
+    return success ?? false;
+  } catch (e) {
+    print(e);
+    return false;
+  }
+}
+
 /// Check if battery optimization is disabled
 Future<bool?> get isBatteryOptimizationDisabled async {
   final bool? isBatteryOptimizationDisabled =

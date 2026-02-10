@@ -78,6 +78,14 @@ object AutoStartIntents {
                      intents.add(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
                  }
             }
+            "lenovo" -> {
+                intents.add(ComponentName("com.lenovo.powersetting", "com.lenovo.powersetting.ui.Settings\$HighPowerApplicationsActivity").toIntent())
+                intents.add(ComponentName("com.lenovo.powersetting", "com.lenovo.powersetting.ui.Settings\$HighPowerApplicationsActivity").toIntent())
+            }
+            "zte", "nubia" -> {
+                intents.add(ComponentName("com.zte.heartyservice", "com.zte.heartyservice.setting.BackgroundAppManagementActivity").toIntent())
+                intents.add(ComponentName("com.zte.heartyservice", "com.zte.heartyservice.setting.AppBackgroundManagementActivity").toIntent())
+            }
         }
         return intents
     }

@@ -17,7 +17,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  auto_start_flutter: ^0.2.1
+  auto_start_flutter: ^0.3.0
 ```
 
 Import the package:
@@ -58,6 +58,16 @@ Many Android manufacturers (Xiaomi, Oppo, Vivo, etc.) have a custom "Auto-Start"
     // Open standard App Info page
     await openAppInfo();
     ```
+
+4. **Custom Settings (Advanced)**: If you know the specific package and activity name for a setting page on a specific device, you can attempt to open it directly.
+    ```dart
+    // Example: Try opening a specific hidden setting
+    await openCustomSetting(
+      packageName: 'com.android.settings',
+      activityName: 'com.android.settings.Settings\$PowerUsageSummaryActivity',
+    );
+    ```
+
 
 ### Battery Optimization
 Android's Doze mode and App Standby can restrict background processing. Disabling battery optimizations for your app can help ensure background services (like Alarms or WorkManager) run on time.

@@ -1,3 +1,7 @@
+## 0.3.0
+* Added `openCustomSetting` API to open specific settings by package and activity name.
+* Added support for Lenovo and ZTE/Nubia devices.
+
 ## 0.2.1
 * Added specific intents for Honor devices (`com.hihonor.systemmanager`).
 

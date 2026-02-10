@@ -82,6 +82,30 @@ class _HomePageState extends State<HomePage> {
     await openAppInfo();
   }
 
+  final TextEditingController _packageNameController = TextEditingController();
+  final TextEditingController _activityNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _packageNameController.dispose();
+    _activityNameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openCustomSetting() async {
+    if (_packageNameController.text.isEmpty || _activityNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please enter both package and activity names")));
+      return;
+    }
+    bool success = await openCustomSetting(
+      packageName: _packageNameController.text,
+      activityName: _activityNameController.text,
+    );
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to open custom setting")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,31 +113,53 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Auto Start Flutter Example'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("Manufacturer: $_manufacturer"),
-            SizedBox(height: 20),
-            Text("Battery Optimization: $_batteryOptimizationStatus"),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _checkBatteryOptimization,
-              child: Text("Check Battery Optimization"),
-            ),
-            ElevatedButton(
-              onPressed: _disableBatteryOptimization,
-              child: Text("Disable Battery Optimization"),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _openAutoStart,
-              child: Text("Open Auto Start Settings"),
-            ),
-            ElevatedButton(
-              onPressed: _openAppInfo,
-              child: Text("Open App Info"),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Manufacturer: $_manufacturer"),
+              SizedBox(height: 20),
+              Text("Battery Optimization: $_batteryOptimizationStatus"),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _checkBatteryOptimization,
+                child: Text("Check Battery Optimization"),
+              ),
+              ElevatedButton(
+                onPressed: _disableBatteryOptimization,
+                child: Text("Disable Battery Optimization"),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _openAutoStart,
+                child: Text("Open Auto Start Settings"),
+              ),
+              ElevatedButton(
+                onPressed: _openAppInfo,
+                child: Text("Open App Info"),
+              ),
+              Divider(height: 40),
+              Text("Test Custom Intent", style: TextStyle(fontWeight: FontWeight.bold)),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _packageNameController,
+                  decoration: InputDecoration(labelText: "Package Name", border: OutlineInputBorder()),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _activityNameController,
+                  decoration: InputDecoration(labelText: "Activity Name", border: OutlineInputBorder()),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: _openCustomSetting,
+                child: Text("Open Custom Setting"),
+              ),
+            ],
+          ),
         ),
       ),
     );
