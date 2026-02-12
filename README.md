@@ -1,6 +1,6 @@
 # auto_start_flutter
 
-A Flutter plugin to help manage background execution permissions on Android devices. It supports requesting "Auto-Start" permissions on specific OEM devices (Xiaomi, Oppo, Vivo, etc.) and managing battery optimization settings to ensure your app can run reliably in the background.
+A Flutter plugin to help manage background execution permissions on Android and iOS devices. It supports requesting "Auto-Start" permissions on specific Android OEM devices and checking "Background App Refresh" status on iOS to ensure your app can run reliably in the background.
 
 ## Features
 
@@ -17,7 +17,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  auto_start_flutter: ^0.3.0
+  auto_start_flutter: ^0.4.0
 ```
 
 Import the package:
@@ -25,41 +25,55 @@ Import the package:
 import 'package:auto_start_flutter/auto_start_flutter.dart';
 ```
 
+## Platform Support
+
+| Feature | Android | iOS |
+| --- | --- | --- |
+| `isAutoStartAvailable` | Checks manufacturer whitelist | Checks `UIBackgroundRefreshStatus` |
+| `getAutoStartPermission` | Opens Auto Start / App Info | Opens App Settings |
+| `openAppInfo` | Opens App Info | Opens App Settings |
+| `getDeviceManufacturer` | Returns `Build.MANUFACTURER` | Returns "Apple" |
+| `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) |
+| `disableBatteryOptimization` | Opens ignore battery optimization settings | Opens App Settings |
+| `openCustomSetting` | Opens specific activity | **Not Supported** |
+
 ## Usage
+### AutoStart Permission / Background Refresh
+On **Android**, this checks if the device is from a manufacturer known to have aggressive auto-start restrictions and redirects the user to the appropriate settings page.
+On **iOS**, this checks if **Background App Refresh** is enabled. If not, it redirects the user to the App Settings page where they can enable it.
 
-### Auto-Start Permission
-Many Android manufacturers (Xiaomi, Oppo, Vivo, etc.) have a custom "Auto-Start" permission that prevents apps from starting in the background by default.
+```dart
+import 'package:auto_start_flutter/auto_start_flutter.dart';
+// ...
 
-1. **Check Availability**: Check if the current device has a known "Auto-Start" setting.
-    ```dart
-    bool isAvailable = await isAutoStartAvailable ?? false;
-    ```
-2. **Request Permission**: If available, navigate the user to the settings page.
-    ```dart
-    if (isAvailable) {
-      bool success = await getAutoStartPermission();
-      if (success) {
-        // Successfully opened Auto-Start settings
-      } else {
-        // Failed to open Auto-Start settings, usually because the specific intent wasn't found.
-        // You might want to fallback to App Info.
-        await openAppInfo();
-      }
-    }
-    ```
+// 1. Check if auto-start permission is available / relevant
+// Android: Returns true for Xiaomi, Oppo, Vivo, etc.
+// iOS: Returns true if Background App Refresh is available (not restricted).
+var isAvailable = await isAutoStartAvailable;
 
-3. **Fallback & Customization**: You can also check the manufacturer to show specific instructions or use the generic App Info page as a fallback.
+if (isAvailable == true) {
+    // 2. Request permission / Open Settings
+    // Android: Opens Auto Start settings or App Info.
+    // iOS: Opens App Settings.
+    await getAutoStartPermission();
+}
+```
+
+### Other Features
+2. **App Info**: Open the system settings page for the app.
     ```dart
-    String? manufacturer = await getDeviceManufacturer();
-    if (manufacturer == "xiaomi") {
-      // Show specific instructions for Xiaomi users
-    }
-    
-    // Open standard App Info page
+    // Android: Opens App Info
+    // iOS: Opens App Settings
     await openAppInfo();
     ```
 
-4. **Custom Settings (Advanced)**: If you know the specific package and activity name for a setting page on a specific device, you can attempt to open it directly.
+3. **Device Manufacturer**: Get the device manufacturer.
+    ```dart
+    String? manufacturer = await getDeviceManufacturer(); 
+    // e.g. "Xiaomi", "Apple", "Samsung"
+    ```
+
+4. **Custom Settings (Android Only)**: If you know the specific package and activity name for a setting page on a specific device, you can attempt to open it directly.
     ```dart
     // Example: Try opening a specific hidden setting
     await openCustomSetting(
@@ -68,9 +82,9 @@ Many Android manufacturers (Xiaomi, Oppo, Vivo, etc.) have a custom "Auto-Start"
     );
     ```
 
+### Battery Optimization (Android)
+Android's Doze mode and App Standby can restrict background processing. On iOS, this API returns `true` for "disabled" (meaning good to go) and opens settings if requested, to maintain API compatibility.
 
-### Battery Optimization
-Android's Doze mode and App Standby can restrict background processing. Disabling battery optimizations for your app can help ensure background services (like Alarms or WorkManager) run on time.
 
 1. **Check Status**: Check if your app is already ignoring battery optimizations.
     ```dart

@@ -1,3 +1,10 @@
+## 0.4.0
+* **iOS Support**: Added support for iOS.
+    * `isAutoStartAvailable`: Checks `UIBackgroundRefreshStatus`.
+    * `getAutoStartPermission`: Opens App Settings.
+    * `getDeviceManufacturer`: Returns "Apple".
+* Updated documentation to reflect cross-platform behavior.
+
 ## 0.3.0
 * Added `openCustomSetting` API to open specific settings by package and activity name.
 * Added support for Lenovo and ZTE/Nubia devices.

@@ -1,0 +1,22 @@
+PODS:
+  - auto_start_flutter (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - auto_start_flutter (from `.symlinks/plugins/auto_start_flutter/ios`)
+  - Flutter (from `Flutter`)
+
+EXTERNAL SOURCES:
+  auto_start_flutter:
+    :path: ".symlinks/plugins/auto_start_flutter/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  auto_start_flutter: 343ac1c584a4478ef1f16b370e9cf5c00db17d9f
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+
+PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+
+COCOAPODS: 1.16.2

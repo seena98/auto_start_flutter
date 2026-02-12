@@ -1,10 +1,12 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:auto_start_flutter/auto_start_flutter_method_channel.dart';
 
 void main() {
-  const MethodChannel channel = MethodChannel('com.techflow.co/auto_start_flutter');
-
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  MethodChannelAutoStartFlutter platform = MethodChannelAutoStartFlutter();
+  const MethodChannel channel = MethodChannel('auto_start_flutter');
 
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -20,7 +22,6 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    // This method doesn't exist in the Dart API currently, so this test is a placeholder.
-    // Let's test isAutoStartAvailable instead.
+    expect(await platform.getPlatformVersion(), '42');
   });
 }
