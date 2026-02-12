@@ -1,3 +1,6 @@
+## 0.4.1
+* Updated README to accurately reflect iOS support.
+
 ## 0.4.0
 * **iOS Support**: Added support for iOS.
     * `isAutoStartAvailable`: Checks `UIBackgroundRefreshStatus`.

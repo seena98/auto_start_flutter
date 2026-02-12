@@ -9,7 +9,7 @@ A Flutter plugin to help manage background execution permissions on Android and 
 - **Device Support**: targeted support for Xiaomi, Redmi, Poco, Oppo, Vivo, Huawei, Honor, Samsung, ASUS, OnePlus, Nokia, LeTV, Meizu, HTC, Infinix, and more.
 - **Robustness**: The plugin attempts multiple known intents for each manufacturer to ensure the settings page opens correctly.
 
-[![pub package](https://img.shields.io/pub/v/http.svg)](https://pub.dev/packages/auto_start_flutter)
+[![pub package](https://img.shields.io/pub/v/auto_start_flutter.svg)](https://pub.dev/packages/auto_start_flutter)
 
 ## Getting Started
 
@@ -103,7 +103,7 @@ Android's Doze mode and App Standby can restrict background processing. On iOS, 
 | Platform | Supported | Notes |
 |----------|-----------|-------|
 | Android  | ✅         | Supports custom OEM intents and standard battery optimization settings. |
-| iOS      | ❌         | Not applicable. |
+| iOS      | ✅         | Checks `UIBackgroundRefreshStatus` and opens App Settings. |
 
-## contributing
+## Contributing
 If you find any issues or would like to add support for more devices, please file an issue or pull request on GitHub.
