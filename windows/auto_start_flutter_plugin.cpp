@@ -68,7 +68,7 @@ void AutoStartFlutterPlugin::HandleMethodCall(
 
 } // namespace auto_start_flutter
 
-void AutoStartFlutterPluginRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void AutoStartFlutterPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
   auto_start_flutter::AutoStartFlutterPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
