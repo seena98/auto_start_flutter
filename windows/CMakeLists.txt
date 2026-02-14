@@ -17,7 +17,7 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 
 target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 
-target_include_directories(${PLUGIN_NAME} INTERFACE
+target_include_directories(${PLUGIN_NAME} PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
