@@ -16,8 +16,7 @@ A Flutter plugin to help manage background execution permissions on Android and 
 Add the package to your `pubspec.yaml`:
 
 ```yaml
-dependencies:
-  auto_start_flutter: ^0.4.2
+  auto_start_flutter: ^0.5.0
 ```
 
 Import the package:
@@ -104,6 +103,9 @@ Android's Doze mode and App Standby can restrict background processing. On iOS, 
 |----------|-----------|-------|
 | Android  | ✅         | Supports custom OEM intents and standard battery optimization settings. |
 | iOS      | ✅         | Checks `UIBackgroundRefreshStatus` and opens App Settings. |
+| Windows  | ✅         | Opens Startup Apps settings. |
+
+> **Note**: Standard Android APIs do not allow checking if "Auto Start" is actually enabled. `isAutoStartAvailable` only returns `true` if the device manufacturer is on the supported list (e.g. Xiaomi, Oppo). On Windows, it currently returns `true` to indicate the feature is generally available. Only iOS allows verifying the actual background refresh status.
 
 ## Contributing
 If you find any issues or would like to add support for more devices, please file an issue or pull request on GitHub.
