@@ -16,6 +16,8 @@ let package = Package(
         .target(
             name: "auto_start_flutter",
             dependencies: [],
+            path: ".",
+            sources: ["Classes"],
             resources: [
                 .process("Resources"),
             ]
