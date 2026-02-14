@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 ///initial AutoStart Class
 const MethodChannel _channel =
-    const MethodChannel('com.techflow.co/auto_start_flutter');
+    MethodChannel('com.techflow.co/auto_start_flutter');
 
 /// It checks if the phone has auto-start function.
 Future<bool?> get isAutoStartAvailable async {
@@ -22,7 +23,7 @@ Future<bool> getAutoStartPermission() async {
     final bool? success = await _channel.invokeMethod("permit-auto-start");
     return success ?? false;
   } catch (e) {
-    print(e);
+    debugPrint(e.toString());
     return false;
   }
 }
@@ -33,7 +34,7 @@ Future<void> openAppInfo() async {
   try {
     await _channel.invokeMethod("openAppInfo");
   } catch (e) {
-    print(e);
+    debugPrint(e.toString());
   }
 }
 
@@ -42,7 +43,7 @@ Future<String?> getDeviceManufacturer() async {
   try {
     return await _channel.invokeMethod("getDeviceManufacturer");
   } catch (e) {
-    print(e);
+    debugPrint(e.toString());
     return null;
   }
 }
@@ -60,7 +61,7 @@ Future<bool> openCustomSetting({
     });
     return success ?? false;
   } catch (e) {
-    print(e);
+    debugPrint(e.toString());
     return false;
   }
 }
@@ -77,6 +78,6 @@ Future<void> disableBatteryOptimization() async {
   try {
     await _channel.invokeMethod("disableBatteryOptimization");
   } catch (e) {
-    print(e);
+    debugPrint(e.toString());
   }
 }

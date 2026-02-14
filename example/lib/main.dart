@@ -8,6 +8,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -17,8 +19,10 @@ class MyApp extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
@@ -46,14 +50,14 @@ class _HomePageState extends State<HomePage> {
     try {
       //check auto-start availability.
       var isAvailable = (await isAutoStartAvailable) ?? false;
-      print("Auto start available: $isAvailable");
+      debugPrint("Auto start available: $isAvailable");
       //if available then navigate to auto-start setting page.
       if (isAvailable) {
          bool success = await getAutoStartPermission();
-         print("Auto start permission open success: $success");
+         debugPrint("Auto start permission open success: $success");
       }
     } on PlatformException catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
     if (!mounted) return;
   }
@@ -73,6 +77,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _openAutoStart() async {
     bool success = await getAutoStartPermission();
     if (!success) {
+      if (!mounted) return;
       // Now this context is below MaterialApp, so ScaffoldMessenger works.
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Could not open Auto-Start settings directly.")));
     }
@@ -102,6 +107,7 @@ class _HomePageState extends State<HomePage> {
       activityName: _activityNameController.text,
     );
     if (!success) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to open custom setting")));
     }
   }
