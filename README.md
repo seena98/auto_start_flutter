@@ -40,6 +40,7 @@ import 'package:auto_start_flutter/auto_start_flutter.dart';
 ### AutoStart Permission / Background Refresh
 On **Android**, this checks if the device is from a manufacturer known to have aggressive auto-start restrictions and redirects the user to the appropriate settings page.
 On **iOS**, this checks if **Background App Refresh** is enabled. If not, it redirects the user to the App Settings page where they can enable it.
+On **Windows**, this opens the **Startup Apps** system settings, where users can toggle your app's startup status.
 
 ```dart
 import 'package:auto_start_flutter/auto_start_flutter.dart';
@@ -54,6 +55,7 @@ if (isAvailable == true) {
     // 2. Request permission / Open Settings
     // Android: Opens Auto Start settings or App Info.
     // iOS: Opens App Settings.
+    // Windows: Opens Startup Apps settings.
     await getAutoStartPermission();
 }
 ```
