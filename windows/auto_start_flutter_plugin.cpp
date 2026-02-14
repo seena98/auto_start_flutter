@@ -1,9 +1,7 @@
 #include "auto_start_flutter_plugin.h"
 
-// #include <windows.h> // Already included by
-// flutter/plugin_registrar_windows.h indirectly, but good to be explicit for
-// ShellExecute if needed
 #include <shellapi.h>
+#include <windows.h>
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
