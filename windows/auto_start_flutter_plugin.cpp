@@ -19,7 +19,8 @@ void AutoStartFlutterPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "auto_start_flutter");
+          registrar->messenger(), "auto_start_flutter",
+          &flutter::StandardMethodCodec::GetInstance());
 
   auto plugin = std::make_unique<AutoStartFlutterPlugin>();
 
