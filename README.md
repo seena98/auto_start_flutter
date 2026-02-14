@@ -17,7 +17,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  auto_start_flutter: ^0.4.0
+  auto_start_flutter: ^0.4.2
 ```
 
 Import the package:

@@ -1,3 +1,6 @@
+## 0.4.2
+* Added Swift Package Manager (SPM) support for iOS.
+
 ## 0.4.1
 * Updated README to accurately reflect iOS support.
 
