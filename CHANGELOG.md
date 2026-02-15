@@ -1,6 +1,7 @@
 ## 0.5.0
 * **Feature**: Added Windows support.
 * **Feature**: Added GitHub Actions for cross-platform CI/CD.
+* Restructured iOS plugin for improved Swift Package Manager support.
 * Updated README to clarify platform limitations regarding checking "enabled" status.
 
 ## 0.4.3

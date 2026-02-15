@@ -14,7 +14,7 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  auto_start_flutter: 343ac1c584a4478ef1f16b370e9cf5c00db17d9f
+  auto_start_flutter: 68efca6fcf56550d9ea9a2a26c75bd770bda421c
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
 
 PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
