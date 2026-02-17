@@ -1,3 +1,6 @@
+## 0.5.2
+* Comprehensively updated README for Windows support.
+
 ## 0.5.1
 * Updated platform support table in README.
 
