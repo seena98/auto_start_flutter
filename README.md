@@ -26,15 +26,15 @@ import 'package:auto_start_flutter/auto_start_flutter.dart';
 
 ## Platform Support
 
-| Feature | Android | iOS |
-| --- | --- | --- |
-| `isAutoStartAvailable` | Checks manufacturer whitelist | Checks `UIBackgroundRefreshStatus` |
-| `getAutoStartPermission` | Opens Auto Start / App Info | Opens App Settings |
-| `openAppInfo` | Opens App Info | Opens App Settings |
-| `getDeviceManufacturer` | Returns `Build.MANUFACTURER` | Returns "Apple" |
-| `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) |
-| `disableBatteryOptimization` | Opens ignore battery optimization settings | Opens App Settings |
-| `openCustomSetting` | Opens specific activity | **Not Supported** |
+| Feature | Android | iOS | Windows |
+| --- | --- | --- | --- |
+| `isAutoStartAvailable` | Checks manufacturer whitelist | Checks `UIBackgroundRefreshStatus` | Returns `true` |
+| `getAutoStartPermission` | Opens Auto Start / App Info | Opens App Settings | Opens Startup Apps Settings |
+| `openAppInfo` | Opens App Info | Opens App Settings | Opens Apps & Features Settings |
+| `getDeviceManufacturer` | Returns `Build.MANUFACTURER` | Returns "Apple" | Returns "Microsoft" |
+| `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) | Returns `true` (Always valid) |
+| `disableBatteryOptimization` | Opens ignore battery optimization settings | Opens App Settings | Opens Power & Sleep Settings |
+| `openCustomSetting` | Opens specific activity | **Not Supported** | **Not Supported** |
 
 ## Usage
 ### AutoStart Permission / Background Refresh

@@ -1,3 +1,6 @@
+## 0.5.1
+* Updated platform support table in README.
+
 ## 0.5.0
 * **Feature**: Added Windows support.
 * **Feature**: Added GitHub Actions for cross-platform CI/CD.
