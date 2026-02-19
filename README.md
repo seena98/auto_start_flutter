@@ -23,7 +23,7 @@ A Flutter plugin to help manage background execution permissions on **Android, i
 Add the package to your `pubspec.yaml`:
 
 ```yaml
-  auto_start_flutter: ^0.5.0
+  auto_start_flutter: ^0.6.0
 ```
 
 Import the package:

@@ -1,6 +1,7 @@
-## 0.5.3
-* **Feature**: Added macOS support.
-* **Feature**: Added macOS build to CI/CD.
+## 0.6.0
+* Major release including Windows and macOS support.
+* Comprehensive documentation updates.
+* Cross-platform CI/CD.
 
 ## 0.5.2
 * Comprehensively updated README for Windows support.
