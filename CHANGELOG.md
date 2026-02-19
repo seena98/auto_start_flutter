@@ -1,3 +1,7 @@
+## 0.5.3
+* **Feature**: Added macOS support.
+* **Feature**: Added macOS build to CI/CD.
+
 ## 0.5.2
 * Comprehensively updated README for Windows support.
 

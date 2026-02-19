@@ -1,18 +1,19 @@
 # auto_start_flutter
 
-A Flutter plugin to help manage background execution permissions on **Android, iOS, and Windows** devices. It supports requesting "Auto-Start" permissions on specific Android OEM devices, checking "Background App Refresh" status on iOS, and managing "Startup Apps" settings on Windows to ensure your app can run reliably in the background.
+A Flutter plugin to help manage background execution permissions on **Android, iOS, macOS, and Windows** devices. It supports requesting "Auto-Start" permissions on specific Android OEM devices, checking "Background App Refresh" status on iOS, and managing "Startup Apps / Login Items" settings on Windows and macOS to ensure your app can run reliably in the background.
 
 ## Features
 
 - **Auto-Start Permission**: 
   - **Android**: Open manufacturer-specific "Auto-Start" or "App Launch" settings.
   - **iOS**: Check Background App Refresh status.
-  - **Windows**: Open the "Startup Apps" system settings.
-- **Battery Optimization**: Check if the app is exempt from battery optimizations and open settings to request exemption (Android) or power settings (Windows).
+  - **Windows/macOS**: Open the "Startup Apps" or "Login Items" system settings.
+- **Battery Optimization**: Check if the app is exempt from battery optimizations and open settings to request exemption (Android) or power settings (Windows/macOS).
 - **Device Support**: 
   - **Android**: Xiaomi, Redmi, Poco, Oppo, Vivo, Huawei, Honor, Samsung, ASUS, OnePlus, Nokia, LeTV, Meizu, HTC, Infinix, and more.
   - **iOS**: All devices.
   - **Windows**: Windows 10/11.
+  - **macOS**: macOS 10.14+ (limitations apply).
 - **Robustness**: The plugin attempts multiple known intents for each manufacturer to ensure the settings page opens correctly.
 
 [![pub package](https://img.shields.io/pub/v/auto_start_flutter.svg)](https://pub.dev/packages/auto_start_flutter)
@@ -32,21 +33,21 @@ import 'package:auto_start_flutter/auto_start_flutter.dart';
 
 ## Platform Support
 
-| Feature | Android | iOS | Windows |
-| --- | --- | --- | --- |
-| `isAutoStartAvailable` | Checks manufacturer whitelist | Checks `UIBackgroundRefreshStatus` | Returns `true` |
-| `getAutoStartPermission` | Opens Auto Start / App Info | Opens App Settings | Opens Startup Apps Settings |
-| `openAppInfo` | Opens App Info | Opens App Settings | Opens Apps & Features Settings |
-| `getDeviceManufacturer` | Returns `Build.MANUFACTURER` | Returns "Apple" | Returns "Microsoft" |
-| `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) | Returns `true` (Always valid) |
-| `disableBatteryOptimization` | Opens ignore battery optimization settings | Opens App Settings | Opens Power & Sleep Settings |
-| `openCustomSetting` | Opens specific activity | **Not Supported** | **Not Supported** |
+| Feature | Android | iOS | Windows | macOS |
+| --- | --- | --- | --- | --- |
+| `isAutoStartAvailable` | Checks manufacturer whitelist | Checks `UIBackgroundRefreshStatus` | Returns `true` | Returns `true` |
+| `getAutoStartPermission` | Opens Auto Start / App Info | Opens App Settings | Opens Startup Apps | Opens Login Items |
+| `openAppInfo` | Opens App Info | Opens App Settings | Opens Apps & Features | Opens General Settings |
+| `getDeviceManufacturer` | Returns `Build.MANUFACTURER` | Returns "Apple" | Returns "Microsoft" | Returns "Apple" |
+| `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) | Returns `true` | Returns `true` |
+| `disableBatteryOptimization` | Opens ignore battery optimization settings | Opens App Settings | Opens Power & Sleep | Opens Energy Saver |
+| `openCustomSetting` | Opens specific activity | **Not Supported** | **Not Supported** | **Not Supported** |
 
 ## Usage
 ### AutoStart Permission / Background Refresh
 On **Android**, this checks if the device is from a manufacturer known to have aggressive auto-start restrictions and redirects the user to the appropriate settings page.
 On **iOS**, this checks if **Background App Refresh** is enabled. If not, it redirects the user to the App Settings page where they can enable it.
-On **Windows**, this opens the **Startup Apps** system settings, where users can toggle your app's startup status.
+On **Windows** and **macOS**, this opens the **Startup Apps** or **Login Items** system settings, where users can toggle your app's startup status.
 
 ```dart
 import 'package:auto_start_flutter/auto_start_flutter.dart';
@@ -61,7 +62,7 @@ if (isAvailable == true) {
     // 2. Request permission / Open Settings
     // Android: Opens Auto Start settings or App Info.
     // iOS: Opens App Settings.
-    // Windows: Opens Startup Apps settings.
+    // Windows/macOS: Opens Startup Apps / Login Items settings.
     await getAutoStartPermission();
 }
 ```
@@ -112,8 +113,9 @@ Android's Doze mode and App Standby can restrict background processing. On Windo
 | Android  | ✅         | Supports custom OEM intents and standard battery optimization settings. |
 | iOS      | ✅         | Checks `UIBackgroundRefreshStatus` and opens App Settings. |
 | Windows  | ✅         | Opens Startup Apps settings. |
+| macOS    | ✅         | Opens Login Items settings. |
 
-> **Note**: Standard Android APIs do not allow checking if "Auto Start" is actually enabled. `isAutoStartAvailable` only returns `true` if the device manufacturer is on the supported list (e.g. Xiaomi, Oppo). On Windows, `isAutoStartAvailable` returns `true` to indicate that the "Startup Apps" setting is accessible. Only iOS allows verifying the actual background refresh status programmatically.
+> **Note**: Standard Android APIs do not allow checking if "Auto Start" is actually enabled. `isAutoStartAvailable` only returns `true` if the device manufacturer is on the supported list (e.g. Xiaomi, Oppo). On Windows and macOS, `isAutoStartAvailable` returns `true` to indicate that the "Startup Apps" / "Login Items" setting is accessible. Only iOS allows verifying the actual background refresh status programmatically.
 
 ## Contributing
 If you find any issues or would like to add support for more devices, please file an issue or pull request on GitHub.
