@@ -22,21 +22,32 @@ using flutter::MethodResultFunctions;
 
 }  // namespace
 
-TEST(AutoStartFlutterPlugin, GetPlatformVersion) {
+TEST(AutoStartFlutterPlugin, IsAutoStartAvailable) {
   AutoStartFlutterPlugin plugin;
-  // Save the reply value from the success callback.
-  std::string result_string;
-  plugin.HandleMethodCall(
-      MethodCall("getPlatformVersion", std::make_unique<EncodableValue>()),
+  std::unique_ptr<MethodResultFunctions<>> result =
       std::make_unique<MethodResultFunctions<>>(
-          [&result_string](const EncodableValue* result) {
-            result_string = std::get<std::string>(*result);
+          [](const EncodableValue* result) {
+            EXPECT_TRUE(std::get<bool>(*result));
           },
-          nullptr, nullptr));
+          nullptr, nullptr);
 
-  // Since the exact string varies by host, just ensure that it's a string
-  // with the expected format.
-  EXPECT_TRUE(result_string.rfind("Windows ", 0) == 0);
+  plugin.HandleMethodCall(
+      MethodCall("isAutoStartAvailable", std::make_unique<EncodableValue>()),
+      std::move(result));
+}
+
+TEST(AutoStartFlutterPlugin, GetDeviceManufacturer) {
+  AutoStartFlutterPlugin plugin;
+  std::unique_ptr<MethodResultFunctions<>> result =
+      std::make_unique<MethodResultFunctions<>>(
+          [](const EncodableValue* result) {
+            EXPECT_EQ(std::get<std::string>(*result), "Microsoft");
+          },
+          nullptr, nullptr);
+
+  plugin.HandleMethodCall(
+      MethodCall("getDeviceManufacturer", std::make_unique<EncodableValue>()),
+      std::move(result));
 }
 
 }  // namespace test

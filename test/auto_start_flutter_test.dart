@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:auto_start_flutter/auto_start_flutter.dart';
 
 void main() {
   const MethodChannel channel = MethodChannel('com.techflow.co/auto_start_flutter');
@@ -10,7 +11,22 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
-        return '42';
+        switch (methodCall.method) {
+          case 'isAutoStartPermission':
+            return true;
+          case 'permit-auto-start':
+            return true;
+          case 'getDeviceManufacturer':
+            return 'TestManufacturer';
+          case 'isBatteryOptimizationDisabled':
+            return false;
+          case 'disableBatteryOptimization':
+            return null;
+          case 'openAppInfo':
+            return null;
+          default:
+            return null;
+        }
       },
     );
   });
@@ -19,8 +35,19 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
   });
 
-  test('getPlatformVersion', () async {
-    // This method doesn't exist in the Dart API currently, so this test is a placeholder.
-    // Let's test isAutoStartAvailable instead.
+  test('isAutoStartAvailable', () async {
+    expect(await isAutoStartAvailable, true);
+  });
+
+  test('getAutoStartPermission', () async {
+    expect(await getAutoStartPermission(), true);
+  });
+
+  test('getDeviceManufacturer', () async {
+    expect(await getDeviceManufacturer(), 'TestManufacturer');
+  });
+
+  test('isBatteryOptimizationDisabled', () async {
+    expect(await isBatteryOptimizationDisabled, false);
   });
 }
