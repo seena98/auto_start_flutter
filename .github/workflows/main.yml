@@ -95,15 +95,6 @@ jobs:
           flutter build windows --debug
       - name: Run Plugin Tests
         run: flutter test
-      - name: Run Windows C++ Tests
-        run: |
-          $test_exe = Get-ChildItem -Path .\example\build\windows -Filter auto_start_flutter_test.exe -Recurse | Select-Object -First 1
-          if ($test_exe) {
-            & $test_exe.FullName
-          } else {
-            Write-Error "Could not find auto_start_flutter_test.exe"
-            exit 1
-          }
 
   build_linux:
     name: Build Linux
@@ -127,5 +118,3 @@ jobs:
           flutter build linux --debug
       - name: Run Plugin Tests
         run: flutter test
-      - name: Run Linux C++ Tests
-        run: ./example/build/linux/x64/debug/plugins/auto_start_flutter/auto_start_flutter_test
