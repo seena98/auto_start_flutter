@@ -1,6 +1,6 @@
 name: auto_start_flutter
 description: A Flutter plugin to manage background execution permissions. Supports Android Auto-Start settings (Xiaomi, etc.) and iOS Background App Refresh.
-version: 0.6.0
+version: 0.7.0
 homepage: https://github.com/seena98/auto_start_flutter
 repository: https://github.com/seena98/auto_start_flutter
 #authors:  [Seena Ashr]
@@ -39,6 +39,8 @@ flutter:
       windows:
         pluginClass: AutoStartFlutterPlugin
       macos:
+        pluginClass: AutoStartFlutterPlugin
+      linux:
         pluginClass: AutoStartFlutterPlugin
 
   # To add assets to your plugin package, add an assets section, like this:

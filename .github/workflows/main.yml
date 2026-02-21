@@ -95,3 +95,30 @@ jobs:
           flutter build windows --debug
       - name: Run Plugin Tests
         run: flutter test
+      - name: Run Windows C++ Tests
+        run: .\example\build\windows\x64\plugins\auto_start_flutter\Debug\auto_start_flutter_test.exe
+
+  build_linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev
+          flutter pub get
+      - name: Enable Linux support
+        run: flutter config --enable-linux-desktop
+      - name: Build Example Linux
+        run: |
+          cd example
+          flutter build linux --debug
+      - name: Run Plugin Tests
+        run: flutter test
+      - name: Run Linux C++ Tests
+        run: ./example/build/linux/x64/debug/plugins/auto_start_flutter/auto_start_flutter_test

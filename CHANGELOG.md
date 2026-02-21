@@ -1,3 +1,8 @@
+## 0.7.0
+* Major release including Linux platform support.
+* Implemented native C++ unit tests for Windows and Linux to enhance stability.
+* Updated CI/CD workflow to verify builds and test binaries on Linux runners.
+
 ## 0.6.0
 * Major release including Windows and macOS support.
 * Comprehensive documentation updates.

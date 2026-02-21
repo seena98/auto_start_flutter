@@ -1,6 +1,6 @@
 # auto_start_flutter
 
-A Flutter plugin to help manage background execution permissions on **Android, iOS, macOS, and Windows** devices. It supports requesting "Auto-Start" permissions on specific Android OEM devices, checking "Background App Refresh" status on iOS, and managing "Startup Apps / Login Items" settings on Windows and macOS to ensure your app can run reliably in the background.
+A Flutter plugin to help manage background execution permissions on **Android, iOS, macOS, Windows, and Linux** devices. It supports requesting "Auto-Start" permissions on specific Android OEM devices, checking "Background App Refresh" status on iOS, and managing "Startup Apps / Login Items" settings on Windows and macOS to ensure your app can run reliably in the background.
 
 ## Features
 
@@ -14,6 +14,7 @@ A Flutter plugin to help manage background execution permissions on **Android, i
   - **iOS**: All devices.
   - **Windows**: Windows 10/11.
   - **macOS**: macOS 10.14+ (limitations apply).
+  - **Linux**: Supported (stubbed methods due to varying Desktop Environments).
 - **Robustness**: The plugin attempts multiple known intents for each manufacturer to ensure the settings page opens correctly.
 
 [![pub package](https://img.shields.io/pub/v/auto_start_flutter.svg)](https://pub.dev/packages/auto_start_flutter)
@@ -23,7 +24,7 @@ A Flutter plugin to help manage background execution permissions on **Android, i
 Add the package to your `pubspec.yaml`:
 
 ```yaml
-  auto_start_flutter: ^0.6.0
+  auto_start_flutter: ^0.7.0
 ```
 
 Import the package:
@@ -33,15 +34,15 @@ import 'package:auto_start_flutter/auto_start_flutter.dart';
 
 ## Platform Support
 
-| Feature | Android | iOS | Windows | macOS |
-| --- | --- | --- | --- | --- |
-| `isAutoStartAvailable` | Checks manufacturer whitelist | Checks `UIBackgroundRefreshStatus` | Returns `true` | Returns `true` |
-| `getAutoStartPermission` | Opens Auto Start / App Info | Opens App Settings | Opens Startup Apps | Opens Login Items |
-| `openAppInfo` | Opens App Info | Opens App Settings | Opens Apps & Features | Opens General Settings |
-| `getDeviceManufacturer` | Returns `Build.MANUFACTURER` | Returns "Apple" | Returns "Microsoft" | Returns "Apple" |
-| `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) | Returns `true` | Returns `true` |
-| `disableBatteryOptimization` | Opens ignore battery optimization settings | Opens App Settings | Opens Power & Sleep | Opens Energy Saver |
-| `openCustomSetting` | Opens specific activity | **Not Supported** | **Not Supported** | **Not Supported** |
+| Feature | Android | iOS | Windows | macOS | Linux |
+| --- | --- | --- | --- | --- | --- |
+| `isAutoStartAvailable` | Checks manufacturer whitelist | Checks `UIBackgroundRefreshStatus` | Returns `true` | Returns `true` | Returns `true` |
+| `getAutoStartPermission` | Opens Auto Start / App Info | Opens App Settings | Opens Startup Apps | Opens Login Items | Returns `true` (No-op) |
+| `openAppInfo` | Opens App Info | Opens App Settings | Opens Apps & Features | Opens General Settings | Returns `true` (No-op) |
+| `getDeviceManufacturer` | Returns `Build.MANUFACTURER` | Returns "Apple" | Returns "Microsoft" | Returns "Apple" | Returns "Linux" |
+| `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) | Returns `true` | Returns `true` | Returns `true` |
+| `disableBatteryOptimization` | Opens ignore battery optimization settings | Opens App Settings | Opens Power & Sleep | Opens Energy Saver | Returns `true` (No-op) |
+| `openCustomSetting` | Opens specific activity | **Not Supported** | **Not Supported** | **Not Supported** | **Not Supported** |
 
 ## Usage
 ### AutoStart Permission / Background Refresh
@@ -114,6 +115,7 @@ Android's Doze mode and App Standby can restrict background processing. On Windo
 | iOS      | ✅         | Checks `UIBackgroundRefreshStatus` and opens App Settings. |
 | Windows  | ✅         | Opens Startup Apps settings. |
 | macOS    | ✅         | Opens Login Items settings. |
+| Linux    | ✅         | Basic support. Most methods return logical defaults as DE APIs vary wildly. |
 
 > **Note**: Standard Android APIs do not allow checking if "Auto Start" is actually enabled. `isAutoStartAvailable` only returns `true` if the device manufacturer is on the supported list (e.g. Xiaomi, Oppo). On Windows and macOS, `isAutoStartAvailable` returns `true` to indicate that the "Startup Apps" / "Login Items" setting is accessible. Only iOS allows verifying the actual background refresh status programmatically.
 
