@@ -13,3 +13,4 @@ FlMethodResponse *get_device_manufacturer();
 FlMethodResponse *disable_battery_optimization();
 FlMethodResponse *is_battery_optimization_disabled();
 FlMethodResponse *open_app_info();
+FlMethodResponse *register_boot_callback();

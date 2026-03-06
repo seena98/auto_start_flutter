@@ -1,5 +1,6 @@
 import Cocoa
 import FlutterMacOS
+import ServiceManagement
 
 public class AutoStartFlutterPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -35,6 +36,22 @@ public class AutoStartFlutterPlugin: NSObject, FlutterPlugin {
              NSWorkspace.shared.open(url)
         }
         result(true)
+    case "registerBootCallback":
+        if #available(macOS 13.0, *) {
+            do {
+                try SMAppService.mainApp.register()
+                result(true)
+            } catch {
+                print("Failed to register SMAppService: \(error)")
+                result(false)
+            }
+        } else {
+            // SMLoginItemSetEnabled requires a bundled helper app.
+            // For macOS < 13.0, we just return false indicating failure/unsupported.
+            result(false)
+        }
+    case "startForegroundService", "stopForegroundService":
+        result(false)
     default:
       result(FlutterMethodNotImplemented)
     }

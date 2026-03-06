@@ -1,3 +1,28 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="co.techFlow.auto_start_flutter">
+
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+  <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <!-- For Android 14+ -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+  <application>
+    <receiver
+        android:name=".BootReceiver"
+        android:enabled="true"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED" />
+            <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+        </intent-filter>
+    </receiver>
+    
+    <service
+        android:name=".KeepAliveService"
+        android:enabled="true"
+        android:exported="false"
+        android:foregroundServiceType="specialUse" />
+  </application>
 </manifest>

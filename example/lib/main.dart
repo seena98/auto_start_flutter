@@ -3,6 +3,12 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:auto_start_flutter/auto_start_flutter.dart';
 
+@pragma('vm:entry-point')
+void myBootCallback() {
+  WidgetsFlutterBinding.ensureInitialized();
+  debugPrint("Boot Callback execution triggered! The device just booted.");
+}
+
 void main() {
   runApp(MyApp());
 }
@@ -112,6 +118,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _testRegisterBootCallback() async {
+    bool success = await registerBootCallback(myBootCallback);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Boot Callback Registered: $success")));
+  }
+
+  Future<void> _testStartForegroundService() async {
+    bool success = await startForegroundService(
+      title: "Example Foreground Service",
+      content: "This prevents the app from being killed.",
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Started Foreground Service: $success")));
+  }
+
+  Future<void> _testStopForegroundService() async {
+    bool success = await stopForegroundService();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Stopped Foreground Service: $success")));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,6 +191,21 @@ class _HomePageState extends State<HomePage> {
                 onPressed: _openCustomSetting,
                 child: Text("Open Custom Setting"),
               ),
+              Divider(height: 40),
+              Text("Phase 1 Features", style: TextStyle(fontWeight: FontWeight.bold)),
+              ElevatedButton(
+                onPressed: _testRegisterBootCallback,
+                child: Text("Register Boot Callback"),
+              ),
+              ElevatedButton(
+                onPressed: _testStartForegroundService,
+                child: Text("Start Foreground Service"),
+              ),
+              ElevatedButton(
+                onPressed: _testStopForegroundService,
+                child: Text("Stop Foreground Service"),
+              ),
+              SizedBox(height: 40),
             ],
           ),
         ),

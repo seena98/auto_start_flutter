@@ -29,6 +29,16 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
                 val success = openAutoStartSettings()
                 result.success(success)
             }
+            "registerBootCallback" -> {
+                val callbackHandle = call.argument<Long>("callbackHandle")
+                if (callbackHandle != null) {
+                    val prefs = context.getSharedPreferences(BootReceiver.SHARED_PREFS_KEY, Context.MODE_PRIVATE)
+                    prefs.edit().putLong(BootReceiver.CACHED_CALLBACK_KEY, callbackHandle).apply()
+                    result.success(true)
+                } else {
+                    result.error("INVALID_ARGUMENT", "callbackHandle must not be null", null)
+                }
+            }
             "isAutoStartPermission" -> {
                 // We return true if the manufacturer is one we have intents for.
                 // It's a best-guess "is this feature relevant?" check.
@@ -47,11 +57,39 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
             }
             "disableBatteryOptimization" -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    intent.data = Uri.parse("package:" + context.packageName)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     context.startActivity(intent)
                 }
                 result.success(null)
+            }
+            "startForegroundService" -> {
+                try {
+                    val title = call.argument<String>("title")
+                    val content = call.argument<String>("content")
+                    val serviceIntent = Intent(context, KeepAliveService::class.java).apply {
+                        putExtra("title", title)
+                        putExtra("content", content)
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceIntent)
+                    } else {
+                        context.startService(serviceIntent)
+                    }
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("FOREGROUND_SERVICE_ERROR", e.message, null)
+                }
+            }
+            "stopForegroundService" -> {
+                try {
+                    val serviceIntent = Intent(context, KeepAliveService::class.java)
+                    context.stopService(serviceIntent)
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("FOREGROUND_SERVICE_ERROR", e.message, null)
+                }
             }
             "openAppInfo" -> {
                 try {

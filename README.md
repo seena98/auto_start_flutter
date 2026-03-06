@@ -24,7 +24,7 @@ A Flutter plugin to help manage background execution permissions on **Android, i
 Add the package to your `pubspec.yaml`:
 
 ```yaml
-  auto_start_flutter: ^0.7.0
+  auto_start_flutter: ^1.0.0
 ```
 
 Import the package:
@@ -43,6 +43,8 @@ import 'package:auto_start_flutter/auto_start_flutter.dart';
 | `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) | Returns `true` | Returns `true` | Returns `true` |
 | `disableBatteryOptimization` | Opens ignore battery optimization settings | Opens App Settings | Opens Power & Sleep | Opens Energy Saver | Returns `true` (No-op) |
 | `openCustomSetting` | Opens specific activity | **Not Supported** | **Not Supported** | **Not Supported** | **Not Supported** |
+| `registerBootCallback` | Uses `BOOT_COMPLETED` trigger | **Not Supported** | Writes to Startup Registry | Registers via `SMAppService` | Writes `-autostart` to `~/.config/autostart/` |
+| `startForegroundService` | Starts Foreground Service | **Not Supported** | Returns `false` (No-op) | Returns `false` (No-op) | Returns `false` (No-op) |
 
 ## Usage
 ### AutoStart Permission / Background Refresh
@@ -91,6 +93,44 @@ if (isAvailable == true) {
     );
     ```
 
+### Background Execution & Boot
+The plugin provides advanced lifecycle hooks to natively launch your app in the background across platforms.
+
+1. **Boot Completed Trigger (`registerBootCallback`)**: Run a headless Dart callback or launch your app the moment the device turns on.
+    * **Android**: Uses the `BOOT_COMPLETED` intent and spawns a secure background `FlutterEngine`.
+    * **Windows**: Natively writes the executable path with an `--autostart` flag directly into the `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` registry.
+    * **macOS**: Uses the modern Apple `SMAppService.mainApp.register()` API to register the application into Login Items seamlessly (macOS 13+).
+    * **Linux**: Generates a standardized X-GNOME `.desktop` file natively inside `~/.config/autostart/`.
+
+    ```dart
+    import 'dart:ui';
+    import 'package:flutter/material.dart';
+
+    // 1. Must be a top-level or static function
+    @pragma('vm:entry-point')
+    void myBootCallback() {
+      WidgetsFlutterBinding.ensureInitialized();
+      print("Device booted! Running in the background...");
+    }
+
+    // 2. Register it somewhere in your app (e.g. main.dart)
+    await registerBootCallback(myBootCallback);
+    ```
+    *Note: On Android, the `RECEIVE_BOOT_COMPLETED` permission is automatically merged into your Manifest.*
+
+2. **Foreground Service Keep-Alive (Android)**: Start a foreground service to prevent Android from killing your app when it goes to the background. This will pin a persistent notification to the user's status bar.
+    ```dart
+    // Start the service
+    await startForegroundService(
+      title: "Syncing Data",
+      content: "Do not close the app.",
+    );
+
+    // Stop the service when done
+    await stopForegroundService();
+    ```
+    *Note: The `FOREGROUND_SERVICE` permission is automatically merged into your Manifest.*
+
 ### Battery Optimization (Android & Windows)
 Android's Doze mode and App Standby can restrict background processing. On Windows, power settings can similarly affect background performance. On iOS, this API returns `true` (disabled) to maintain API compatibility.
 
@@ -101,7 +141,7 @@ Android's Doze mode and App Standby can restrict background processing. On Windo
     print("Battery Optimization Disabled: $isExempt");
     ```
 
-2. **Open Settings**: If not exempt, open the "Ignore Battery Optimization" settings to let the user allow your app.
+2. **Request Exemption**: On Android 6.0+, this will trigger a direct system dialog asking the user to unrestrict your app's battery usage. On other platforms, it may open the system settings.
     ```dart
     if (!isExempt) {
       await disableBatteryOptimization();
@@ -118,6 +158,25 @@ Android's Doze mode and App Standby can restrict background processing. On Windo
 | Linux    | ✅         | Basic support. Most methods return logical defaults as DE APIs vary wildly. |
 
 > **Note**: Standard Android APIs do not allow checking if "Auto Start" is actually enabled. `isAutoStartAvailable` only returns `true` if the device manufacturer is on the supported list (e.g. Xiaomi, Oppo). On Windows and macOS, `isAutoStartAvailable` returns `true` to indicate that the "Startup Apps" / "Login Items" setting is accessible. Only iOS allows verifying the actual background refresh status programmatically.
+
+## Removing Permissions (Android)
+If you do not plan on using the new Phase 1 features (Boot Callback, Foreground Service, or Battery Exemption) and want to remove the automatically merged permissions from your final APK, you can exclude them in your app's `android/app/src/main/AndroidManifest.xml` by using the `tools:node="remove"` attribute:
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"> <!-- Add this namespace -->
+    
+    <!-- Remove unwanted permissions merged from the plugin -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" tools:node="remove" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" tools:node="remove" />
+
+    <application>
+        <!-- ... -->
+    </application>
+</manifest>
+```
 
 ## Contributing
 If you find any issues or would like to add support for more devices, please file an issue or pull request on GitHub.

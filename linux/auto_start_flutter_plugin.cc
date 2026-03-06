@@ -39,6 +39,12 @@ auto_start_flutter_plugin_handle_method_call(AutoStartFlutterPlugin *self,
     response = is_battery_optimization_disabled();
   } else if (strcmp(method, "openAppInfo") == 0) {
     response = open_app_info();
+  } else if (strcmp(method, "registerBootCallback") == 0) {
+    response = register_boot_callback();
+  } else if (strcmp(method, "startForegroundService") == 0 ||
+             strcmp(method, "stopForegroundService") == 0) {
+    response = FL_METHOD_RESPONSE(
+        fl_method_success_response_new(fl_value_new_bool(FALSE)));
   } else {
     response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
   }
@@ -73,6 +79,38 @@ FlMethodResponse *is_battery_optimization_disabled() {
 
 FlMethodResponse *open_app_info() {
   g_autoptr(FlValue) result = fl_value_new_bool(TRUE);
+  return FL_METHOD_RESPONSE(fl_method_success_response_new(result));
+}
+
+FlMethodResponse *register_boot_callback() {
+  g_autofree gchar *exe_path = g_file_read_link("/proc/self/exe", nullptr);
+  if (!exe_path) {
+    g_autoptr(FlValue) result = fl_value_new_bool(FALSE);
+    return FL_METHOD_RESPONSE(fl_method_success_response_new(result));
+  }
+
+  const gchar *config_dir = g_get_user_config_dir();
+  g_autofree gchar *autostart_dir =
+      g_build_filename(config_dir, "autostart", nullptr);
+  g_mkdir_with_parents(autostart_dir, 0755);
+
+  g_autofree gchar *exe_name = g_path_get_basename(exe_path);
+  g_autofree gchar *desktop_filename = g_strdup_printf("%s.desktop", exe_name);
+  g_autofree gchar *desktop_path =
+      g_build_filename(autostart_dir, desktop_filename, nullptr);
+
+  g_autofree gchar *desktop_content =
+      g_strdup_printf("[Desktop Entry]\n"
+                      "Type=Application\n"
+                      "Name=%s\n"
+                      "Exec=%s --autostart\n"
+                      "X-GNOME-Autostart-enabled=true\n",
+                      exe_name, exe_path);
+
+  gboolean success =
+      g_file_set_contents(desktop_path, desktop_content, -1, nullptr);
+
+  g_autoptr(FlValue) result = fl_value_new_bool(success);
   return FL_METHOD_RESPONSE(fl_method_success_response_new(result));
 }
 

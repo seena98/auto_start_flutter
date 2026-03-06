@@ -1,5 +1,15 @@
+## 1.0.0
+* **Major Release: The "Background Super-Plugin" Update!**
+* **Feature (Phase 1)**: Added `registerBootCallback` API for Android, Windows, macOS, and Linux to run headless Dart code or launch your app when the device boots up.
+    * **Android**: Uses `BOOT_COMPLETED` intent and spawns a secure background Flutter Engine.
+    * **Windows**: Modifies Startup Registry.
+    * **macOS**: Uses `SMAppService` to register Login Items natively.
+    * **Linux**: Generates standardized Autostart `.desktop` files.
+* **Feature**: Added `startForegroundService` and `stopForegroundService` APIs for Android to stick a persistent keep-alive notification in the status bar.
+* **Feature**: Upgraded Android `disableBatteryOptimization` to use the `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` direct system dialog prompt instead of jumping into settings.
+* Example app updated with UI buttons to cleanly test all Phase 1 capabilities natively.
+
 ## 0.7.0
-* Major release including Linux platform support.
 * Implemented native C++ unit tests for Windows and Linux to enhance stability.
 * Updated CI/CD workflow to verify builds and test binaries on Linux runners.
 * Added Swift Package Manager (SPM) support for macOS to resolve pub.dev analyzer warnings.

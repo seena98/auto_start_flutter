@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -79,5 +80,53 @@ Future<void> disableBatteryOptimization() async {
     await _channel.invokeMethod("disableBatteryOptimization");
   } catch (e) {
     debugPrint(e.toString());
+  }
+}
+
+/// Registers a callback to be executed headlessly when the device boots up.
+/// Only supported on Android in Phase 1.
+/// The [callback] must be a top-level or static function decorated with `@pragma('vm:entry-point')`.
+Future<bool> registerBootCallback(Function callback) async {
+  try {
+    final CallbackHandle? handle = PluginUtilities.getCallbackHandle(callback);
+    if (handle == null) {
+      debugPrint("Failed to get callback handle. Ensure the function is static or top-level and uses @pragma('vm:entry-point').");
+      return false;
+    }
+    final bool? success = await _channel.invokeMethod('registerBootCallback', {
+      'callbackHandle': handle.toRawHandle(),
+    });
+    return success ?? false;
+  } catch (e) {
+    debugPrint(e.toString());
+    return false;
+  }
+}
+
+/// Starts a Foreground Service on Android.
+/// This attaches a persistent notification to the status bar, preventing the OS from killing the app when it goes to the background.
+/// [title] and [content] are used to populate the persistent notification.
+/// Only supported on Android 8.0+.
+Future<bool> startForegroundService({String title = "Running in background", String content = "Keep-alive service is active."}) async {
+  try {
+    final bool? success = await _channel.invokeMethod('startForegroundService', {
+      'title': title,
+      'content': content,
+    });
+    return success ?? false;
+  } catch (e) {
+    debugPrint(e.toString());
+    return false;
+  }
+}
+
+/// Stops the Foreground Service on Android, resolving the persistent notification.
+Future<bool> stopForegroundService() async {
+  try {
+    final bool? success = await _channel.invokeMethod('stopForegroundService');
+    return success ?? false;
+  } catch (e) {
+    debugPrint(e.toString());
+    return false;
   }
 }
