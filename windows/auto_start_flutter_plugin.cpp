@@ -63,27 +63,34 @@ void AutoStartFlutterPlugin::HandleMethodCall(
     ShellExecute(0, 0, L"ms-settings:appsfeatures-app", 0, 0, SW_SHOW);
     result->Success();
   } else if (method_call.method_name().compare("registerBootCallback") == 0) {
-    // On Windows, the closest equivalent to a persistent background boot trigger
-    // is adding the app to the startup registry. This launches the whole app on login.
+    // On Windows, the closest equivalent to a persistent background boot
+    // trigger is adding the app to the startup registry. This launches the
+    // whole app on login.
     wchar_t exePath[MAX_PATH];
     if (GetModuleFileNameW(NULL, exePath, MAX_PATH)) {
       HKEY hKey;
-      LONG lRes = RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_WRITE, &hKey);
+      LONG lRes =
+          RegOpenKeyExW(HKEY_CURRENT_USER,
+                        L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0,
+                        KEY_WRITE, &hKey);
       if (lRes == ERROR_SUCCESS) {
         // Use the executable name as the registry value name
-        wchar_t* exeName = wcsrchr(exePath, L'\\');
+        wchar_t *exeName = wcsrchr(exePath, L'\\');
         if (exeName) {
-           exeName++; // Skip the backslash
+          exeName++; // Skip the backslash
         } else {
-           exeName = L"AutoStartFlutterApp";
+          exeName = L"AutoStartFlutterApp";
         }
-        
+
         // Wrap path in quotes
-        std::wstring valueData = std::wstring(L"\"") + exePath + std::wstring(L"\" --autostart");
-        
-        lRes = RegSetValueExW(hKey, exeName, 0, REG_SZ, (const BYTE*)valueData.c_str(), (valueData.length() + 1) * sizeof(wchar_t));
+        std::wstring valueData =
+            std::wstring(L"\"") + exePath + std::wstring(L"\" --autostart");
+
+        lRes = RegSetValueExW(
+            hKey, exeName, 0, REG_SZ, (const BYTE *)valueData.c_str(),
+            static_cast<DWORD>((valueData.length() + 1) * sizeof(wchar_t)));
         RegCloseKey(hKey);
-        
+
         if (lRes == ERROR_SUCCESS) {
           result->Success(flutter::EncodableValue(true));
           return;
@@ -91,10 +98,11 @@ void AutoStartFlutterPlugin::HandleMethodCall(
       }
     }
     result->Success(flutter::EncodableValue(false));
-  } else if (method_call.method_name().compare("startForegroundService") == 0 || 
+  } else if (method_call.method_name().compare("startForegroundService") == 0 ||
              method_call.method_name().compare("stopForegroundService") == 0) {
-    // Foreground services are an Android-specific concept. 
-    // Return false instead of NotImplemented to avoid muddying Dart console logs.
+    // Foreground services are an Android-specific concept.
+    // Return false instead of NotImplemented to avoid muddying Dart console
+    // logs.
     result->Success(flutter::EncodableValue(false));
   } else {
     result->NotImplemented();
