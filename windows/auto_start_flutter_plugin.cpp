@@ -9,10 +9,34 @@
 #include <flutter/standard_method_codec.h>
 
 #include <memory>
+#include <string>
 #include <sstream>
 
-namespace auto_start_flutter {
 
+namespace auto_start_flutter {
+ 
+ std::string Utf16ToUtf8(const std::wstring& utf16) {
+   if (utf16.empty())
+     return "";
+   int size_needed = WideCharToMultiByte(CP_UTF8, 0, &utf16[0], (int)utf16.size(),
+                                         NULL, 0, NULL, NULL);
+   std::string utf8(size_needed, 0);
+   WideCharToMultiByte(CP_UTF8, 0, &utf16[0], (int)utf16.size(), &utf8[0],
+                       size_needed, NULL, NULL);
+   return utf8;
+ }
+ 
+ std::wstring Utf8ToUtf16(const std::string& utf8) {
+   if (utf8.empty())
+     return L"";
+   int size_needed = MultiByteToWideChar(CP_UTF8, 0, &utf8[0], (int)utf8.size(),
+                                         NULL, 0);
+   std::wstring utf16(size_needed, 0);
+   MultiByteToWideChar(CP_UTF8, 0, &utf8[0], (int)utf8.size(), &utf16[0],
+                       size_needed);
+   return utf16;
+ }
+ 
 // static
 void AutoStartFlutterPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
@@ -107,12 +131,11 @@ void AutoStartFlutterPlugin::HandleMethodCall(
       for (int i = 0; i < nArgs; i++) {
         std::wstring arg = szArglist[i];
         if (arg.find(L"--scheduled-task-id=") == 0) {
-          args_map[flutter::EncodableValue("scheduledTaskId")] =
-              flutter::EncodableValue(std::string(arg.begin() + 20, arg.end()));
-        } else if (arg.find(L"--callback-handle=") == 0) {
+           args_map[flutter::EncodableValue("scheduledTaskId")] =
+               flutter::EncodableValue(Utf16ToUtf8(arg.substr(20)));
+         } else if (arg.find(L"--callback-handle=") == 0) {
           args_map[flutter::EncodableValue("callbackHandle")] =
-              flutter::EncodableValue(std::stoll(
-                  std::wstring(arg.begin() + 18, arg.end())));
+               flutter::EncodableValue(std::stoll(arg.substr(18)));
         } else if (arg == L"--autostart") {
           args_map[flutter::EncodableValue("autostart")] =
               flutter::EncodableValue(true);
@@ -281,8 +304,8 @@ bool AutoStartFlutterPlugin::RegisterScheduledTaskWindows(
   GetModuleFileNameW(NULL, exePath, MAX_PATH);
 
   std::wstring args = std::wstring(L"--scheduled-task-id=") +
-                      std::wstring(taskId.begin(), taskId.end()) +
-                      L" --callback-handle=" + std::to_wstring(callbackHandle);
+                       Utf8ToUtf16(taskId) + L" --callback-handle=" +
+                       std::to_wstring(callbackHandle);
 
   pExecAction->put_Path(_bstr_t(exePath));
   pExecAction->put_Arguments(_bstr_t(args.c_str()));

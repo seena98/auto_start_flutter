@@ -14,3 +14,6 @@ FlMethodResponse *disable_battery_optimization();
 FlMethodResponse *is_battery_optimization_disabled();
 FlMethodResponse *open_app_info();
 FlMethodResponse *register_boot_callback();
+FlMethodResponse *schedule_task(int64_t timestamp, const gchar *task_id,
+                                int64_t callback_handle);
+
