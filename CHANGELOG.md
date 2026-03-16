@@ -1,3 +1,12 @@
+## 1.1.0
+* **Feature (Phase 2)**: Added `scheduleTask` API to schedule top-level Dart callbacks at specific times.
+    * **Android**: Integrated with `AlarmManager` for exact alarms even in Doze mode.
+    * **Windows**: Integrated with **Windows Task Scheduler** via COM API.
+    * **Linux**: Integrated with **Systemd Timers** natively.
+* **Feature**: Added `getLaunchArguments` to detect if the app was woke up by a task or boot.
+* **Breaking Change (Opt-in Permissions)**: Removed all default permissions from the library manifest. Developers must now manually add permissions (e.g., `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`) to their own `AndroidManifest.xml`.
+* **Improvement**: Enhanced headless engine initialization for more reliable background triggers.
+
 ## 1.0.0
 * **Major Release: The "Background Super-Plugin" Update!**
 * **Feature (Phase 1)**: Added `registerBootCallback` API for Android, Windows, macOS, and Linux to run headless Dart code or launch your app when the device boots up.

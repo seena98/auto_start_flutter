@@ -4,13 +4,15 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
+#include <taskschd.h>
+#include <comdef.h>
 
 #include <memory>
 
 namespace auto_start_flutter {
 
 class AutoStartFlutterPlugin : public flutter::Plugin {
-public:
+ public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
 
   AutoStartFlutterPlugin();
@@ -21,11 +23,15 @@ public:
   AutoStartFlutterPlugin(const AutoStartFlutterPlugin &) = delete;
   AutoStartFlutterPlugin &operator=(const AutoStartFlutterPlugin &) = delete;
 
-private:
+ private:
   // Called when a method is called on this plugin's channel from Dart.
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
+  bool RegisterScheduledTaskWindows(int64_t timestamp,
+                                   const std::string &taskId,
+                                   int64_t callbackHandle);
 };
 
 } // namespace auto_start_flutter

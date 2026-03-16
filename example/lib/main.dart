@@ -9,9 +9,16 @@ void myBootCallback() {
   debugPrint("Boot Callback execution triggered! The device just booted.");
 }
 
+@pragma('vm:entry-point')
+void myScheduledTaskCallback() {
+  WidgetsFlutterBinding.ensureInitialized();
+  debugPrint("Scheduled Task execution triggered! Running headlessly.");
+}
+
 void main() {
   runApp(MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -34,13 +41,26 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String _batteryOptimizationStatus = "Unknown";
   String _manufacturer = "Unknown";
+  String _launchArgs = "None";
 
   @override
   void initState() {
     super.initState();
     initAutoStart();
     _getManufacturer();
+    _checkLaunchArgs();
   }
+
+  Future<void> _checkLaunchArgs() async {
+    final args = await getLaunchArguments();
+    if (args.isNotEmpty) {
+      setState(() {
+        _launchArgs = args.toString();
+      });
+      debugPrint("App launched with arguments: $args");
+    }
+  }
+
 
   Future<void> _getManufacturer() async {
     String? manufacturer = await getDeviceManufacturer();
@@ -139,6 +159,15 @@ class _HomePageState extends State<HomePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Stopped Foreground Service: $success")));
   }
 
+  Future<void> _testScheduleTask() async {
+    // Schedule task for 1 minute from now
+    final at = DateTime.now().add(Duration(minutes: 1));
+    bool success = await scheduleTask(at, myScheduledTaskCallback, taskId: "test_task_1");
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Task Scheduled for 1 min from now: $success")));
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,7 +180,10 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text("Manufacturer: $_manufacturer"),
+              SizedBox(height: 10),
+              Text("Launch Args: $_launchArgs"),
               SizedBox(height: 20),
+
               Text("Battery Optimization: $_batteryOptimizationStatus"),
               SizedBox(height: 10),
               ElevatedButton(
@@ -205,8 +237,15 @@ class _HomePageState extends State<HomePage> {
                 onPressed: _testStopForegroundService,
                 child: Text("Stop Foreground Service"),
               ),
+              Divider(height: 40),
+              Text("Phase 2 Features", style: TextStyle(fontWeight: FontWeight.bold)),
+              ElevatedButton(
+                onPressed: _testScheduleTask,
+                child: Text("Schedule Task (1 min)"),
+              ),
               SizedBox(height: 40),
             ],
+
           ),
         ),
       ),

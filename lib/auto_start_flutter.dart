@@ -130,3 +130,41 @@ Future<bool> stopForegroundService() async {
     return false;
   }
 }
+
+/// Schedules a task to be executed headlessly at a specific time.
+/// [at] is the exact time the task should fire.
+/// [callback] must be a top-level or static function decorated with `@pragma('vm:entry-point')`.
+/// [taskId] is an optional unique identifier for the task.
+Future<bool> scheduleTask(DateTime at, Function callback, {String? taskId}) async {
+  try {
+    final CallbackHandle? handle = PluginUtilities.getCallbackHandle(callback);
+    if (handle == null) {
+      debugPrint("Failed to get callback handle. Ensure the function is static or top-level.");
+      return false;
+    }
+    
+    final bool? success = await _channel.invokeMethod('scheduleTask', {
+      'timestamp': at.millisecondsSinceEpoch,
+      'callbackHandle': handle.toRawHandle(),
+      'taskId': taskId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+    });
+    return success ?? false;
+  } catch (e) {
+    debugPrint(e.toString());
+    return false;
+  }
+}
+
+/// Returns the arguments the app was launched with (e.g., from a scheduled task or boot).
+/// Currently supported on Windows and planned for others.
+Future<Map<String, dynamic>> getLaunchArguments() async {
+  try {
+    final Map<dynamic, dynamic>? args =
+        await _channel.invokeMethod('getLaunchArguments');
+    return args?.cast<String, dynamic>() ?? {};
+  } catch (e) {
+    debugPrint(e.toString());
+    return {};
+  }
+}
+

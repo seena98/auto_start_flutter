@@ -98,6 +98,51 @@ void AutoStartFlutterPlugin::HandleMethodCall(
       }
     }
     result->Success(flutter::EncodableValue(false));
+  } else if (method_call.method_name().compare("getLaunchArguments") == 0) {
+    LPWSTR *szArglist;
+    int nArgs;
+    szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+    flutter::EncodableMap args_map;
+    if (szArglist) {
+      for (int i = 0; i < nArgs; i++) {
+        std::wstring arg = szArglist[i];
+        if (arg.find(L"--scheduled-task-id=") == 0) {
+          args_map[flutter::EncodableValue("scheduledTaskId")] =
+              flutter::EncodableValue(std::string(arg.begin() + 20, arg.end()));
+        } else if (arg.find(L"--callback-handle=") == 0) {
+          args_map[flutter::EncodableValue("callbackHandle")] =
+              flutter::EncodableValue(std::stoll(
+                  std::wstring(arg.begin() + 18, arg.end())));
+        } else if (arg == L"--autostart") {
+          args_map[flutter::EncodableValue("autostart")] =
+              flutter::EncodableValue(true);
+        }
+      }
+      LocalFree(szArglist);
+    }
+    result->Success(flutter::EncodableValue(args_map));
+  } else if (method_call.method_name().compare("scheduleTask") == 0) {
+    const auto *arguments =
+        std::get_if<flutter::EncodableMap>(method_call.arguments());
+    if (arguments) {
+      auto timestamp_it = arguments->find(flutter::EncodableValue("timestamp"));
+      auto callback_it =
+          arguments->find(flutter::EncodableValue("callbackHandle"));
+      auto id_it = arguments->find(flutter::EncodableValue("taskId"));
+
+      if (timestamp_it != arguments->end() && callback_it != arguments->end() &&
+          id_it != arguments->end()) {
+        int64_t timestamp = std::get<int64_t>(timestamp_it->second);
+        int64_t callback = std::get<int64_t>(callback_it->second);
+        std::string taskId = std::get<std::string>(id_it->second);
+
+        bool success = RegisterScheduledTaskWindows(timestamp, taskId, callback);
+        result->Success(flutter::EncodableValue(success));
+        return;
+      }
+    }
+    result->Error("INVALID_ARGUMENTS",
+                  "Missing timestamp, taskId or callbackHandle");
   } else if (method_call.method_name().compare("startForegroundService") == 0 ||
              method_call.method_name().compare("stopForegroundService") == 0) {
     // Foreground services are an Android-specific concept.
@@ -109,7 +154,162 @@ void AutoStartFlutterPlugin::HandleMethodCall(
   }
 }
 
+bool AutoStartFlutterPlugin::RegisterScheduledTaskWindows(
+    int64_t timestamp, const std::string &taskId, int64_t callbackHandle) {
+  HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+  // It's okay if COM is already initialized
+  bool comInitialized = SUCCEEDED(hr);
+
+  ITaskService *pService = NULL;
+  hr = CoCreateInstance(CLSID_TaskScheduler, NULL, CLSCTX_INPROC_SERVER,
+                        IID_ITaskService, (void **)&pService);
+  if (FAILED(hr)) {
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  hr = pService->Connect(_variant_t(), _variant_t(), _variant_t(), _variant_t());
+  if (FAILED(hr)) {
+    pService->Release();
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  ITaskFolder *pRootFolder = NULL;
+  hr = pService->GetFolder(_bstr_t(L"\\"), &pRootFolder);
+  if (FAILED(hr)) {
+    pService->Release();
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  // Remove task if it exists
+  pRootFolder->DeleteTask(
+      (_bstr_t(L"AutoStartFlutter_") + _bstr_t(taskId.c_str())).GetBSTR(), 0);
+
+  ITaskDefinition *pTask = NULL;
+  hr = pService->NewTask(0, &pTask);
+  pService->Release();
+  if (FAILED(hr)) {
+    pRootFolder->Release();
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  ITriggerCollection *pTriggers = NULL;
+  hr = pTask->get_Triggers(&pTriggers);
+  if (FAILED(hr)) {
+    pRootFolder->Release();
+    pTask->Release();
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  ITrigger *pTrigger = NULL;
+  hr = pTriggers->Create(TASK_TRIGGER_TIME, &pTrigger);
+  pTriggers->Release();
+  if (FAILED(hr)) {
+    pRootFolder->Release();
+    pTask->Release();
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  ITimeTrigger *pTimeTrigger = NULL;
+  hr = pTrigger->QueryInterface(IID_ITimeTrigger, (void **)&pTimeTrigger);
+  pTrigger->Release();
+  if (FAILED(hr)) {
+    pRootFolder->Release();
+    pTask->Release();
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  // Convert milliseconds timestamp to ISO 8601 string for Task Scheduler
+  // format: YYYY-MM-DDTHH:MM:SS
+  time_t t = (time_t)(timestamp / 1000);
+  struct tm tm_buf;
+  gmtime_s(&tm_buf, &t);
+  wchar_t timeStr[100];
+  swprintf(timeStr, 100, L"%04d-%02d-%02dT%02d:%02d:%02dZ",
+           tm_buf.tm_year + 1900, tm_buf.tm_mon + 1, tm_buf.tm_mday,
+           tm_buf.tm_hour, tm_buf.tm_min, tm_buf.tm_sec);
+
+  pTimeTrigger->put_StartBoundary(_bstr_t(timeStr));
+  pTimeTrigger->Release();
+
+  IActionCollection *pActions = NULL;
+  hr = pTask->get_Actions(&pActions);
+  if (FAILED(hr)) {
+    pRootFolder->Release();
+    pTask->Release();
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  IAction *pAction = NULL;
+  hr = pActions->Create(TASK_ACTION_EXEC, &pAction);
+  pActions->Release();
+  if (FAILED(hr)) {
+    pRootFolder->Release();
+    pTask->Release();
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  IExecAction *pExecAction = NULL;
+  hr = pAction->QueryInterface(IID_IExecAction, (void **)&pExecAction);
+  pAction->Release();
+  if (FAILED(hr)) {
+    pRootFolder->Release();
+    pTask->Release();
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  wchar_t exePath[MAX_PATH];
+  GetModuleFileNameW(NULL, exePath, MAX_PATH);
+
+  std::wstring args = std::wstring(L"--scheduled-task-id=") +
+                      std::wstring(taskId.begin(), taskId.end()) +
+                      L" --callback-handle=" + std::to_wstring(callbackHandle);
+
+  pExecAction->put_Path(_bstr_t(exePath));
+  pExecAction->put_Arguments(_bstr_t(args.c_str()));
+  pExecAction->Release();
+
+  IRegisteredTask *pRegisteredTask = NULL;
+  hr = pRootFolder->RegisterTaskDefinition(
+      (_bstr_t(L"AutoStartFlutter_") + _bstr_t(taskId.c_str())).GetBSTR(), pTask,
+      TASK_CREATE_OR_UPDATE, _variant_t(), _variant_t(),
+      TASK_LOGON_INTERACTIVE_TOKEN, _variant_t(L""), &pRegisteredTask);
+
+  pRootFolder->Release();
+  pTask->Release();
+  if (FAILED(hr)) {
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  pRegisteredTask->Release();
+  if (comInitialized)
+    CoUninitialize();
+  return true;
+}
+
 } // namespace auto_start_flutter
+
 
 FLUTTER_PLUGIN_EXPORT void AutoStartFlutterPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {

@@ -32,33 +32,11 @@ class BootReceiver : BroadcastReceiver() {
             if (callbackHandle != -1L) {
                 // We shouldn't block the receiver thread too long, so we post to main thread
                 Handler(Looper.getMainLooper()).post {
-                    startHeadlessCallback(context, callbackHandle)
+                    HeadlessEngineHelper.startHeadlessCallback(context, callbackHandle)
                 }
             } else {
                 Log.d(TAG, "No Dart callback registered for boot.")
             }
         }
-    }
-
-    private fun startHeadlessCallback(context: Context, callbackHandle: Long) {
-        FlutterInjector.instance().flutterLoader().startInitialization(context)
-        FlutterInjector.instance().flutterLoader().ensureInitializationComplete(context, null)
-        
-        val callbackInfo = FlutterCallbackInformation.lookupCallbackInformation(callbackHandle)
-        if (callbackInfo == null) {
-            Log.e(TAG, "Fatal: failed to find callback")
-            return
-        }
-        
-        Log.d(TAG, "Starting Flutter Engine in background to execute callback...")
-        val engine = FlutterEngine(context)
-        
-        val args = DartExecutor.DartCallback(
-            context.assets,
-            FlutterInjector.instance().flutterLoader().findAppBundlePath(),
-            callbackInfo
-        )
-        
-        engine.dartExecutor.executeDartCallback(args)
     }
 }

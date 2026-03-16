@@ -24,7 +24,7 @@ A Flutter plugin to help manage background execution permissions on **Android, i
 Add the package to your `pubspec.yaml`:
 
 ```yaml
-  auto_start_flutter: ^1.0.0
+  auto_start_flutter: ^1.1.0
 ```
 
 Import the package:
@@ -116,7 +116,7 @@ The plugin provides advanced lifecycle hooks to natively launch your app in the 
     // 2. Register it somewhere in your app (e.g. main.dart)
     await registerBootCallback(myBootCallback);
     ```
-    *Note: On Android, the `RECEIVE_BOOT_COMPLETED` permission is automatically merged into your Manifest.*
+    *Note: On Android, you must manually add the `RECEIVE_BOOT_COMPLETED` permission to your `AndroidManifest.xml` (see Mandatory Setup below).*
 
 2. **Foreground Service Keep-Alive (Android)**: Start a foreground service to prevent Android from killing your app when it goes to the background. This will pin a persistent notification to the user's status bar.
     ```dart
@@ -129,7 +129,7 @@ The plugin provides advanced lifecycle hooks to natively launch your app in the 
     // Stop the service when done
     await stopForegroundService();
     ```
-    *Note: The `FOREGROUND_SERVICE` permission is automatically merged into your Manifest.*
+    *Note: On Android, you must manually add the `FOREGROUND_SERVICE` permission to your `AndroidManifest.xml` (see Mandatory Setup below).*
 
 ### Battery Optimization (Android & Windows)
 Android's Doze mode and App Standby can restrict background processing. On Windows, power settings can similarly affect background performance. On iOS, this API returns `true` (disabled) to maintain API compatibility.
@@ -159,23 +159,35 @@ Android's Doze mode and App Standby can restrict background processing. On Windo
 
 > **Note**: Standard Android APIs do not allow checking if "Auto Start" is actually enabled. `isAutoStartAvailable` only returns `true` if the device manufacturer is on the supported list (e.g. Xiaomi, Oppo). On Windows and macOS, `isAutoStartAvailable` returns `true` to indicate that the "Startup Apps" / "Login Items" setting is accessible. Only iOS allows verifying the actual background refresh status programmatically.
 
-## Removing Permissions (Android)
-If you do not plan on using the new Phase 1 features (Boot Callback, Foreground Service, or Battery Exemption) and want to remove the automatically merged permissions from your final APK, you can exclude them in your app's `android/app/src/main/AndroidManifest.xml` by using the `tools:node="remove"` attribute:
+## Mandatory Setup (Android)
+To keep the plugin lightweight and privacy-focused, permissions are no longer included by default. You must add the permissions required for the features you intend to use to your `android/app/src/main/AndroidManifest.xml`.
 
+### 1. Boot Completed Trigger
+Required for `registerBootCallback`.
 ```xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"> <!-- Add this namespace -->
-    
-    <!-- Remove unwanted permissions merged from the plugin -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" tools:node="remove" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" tools:node="remove" />
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+```
 
-    <application>
-        <!-- ... -->
-    </application>
-</manifest>
+### 2. Foreground Service
+Required for `startForegroundService`.
+```xml
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<!-- For Android 14+ -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+```
+
+### 3. Exact Scheduling & Alarms (Phase 2)
+Required for `scheduleTask`.
+```xml
+<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+<!-- For Android 13+ -->
+<uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+```
+
+### 4. Battery Optimization Exemption
+Required for `disableBatteryOptimization`.
+```xml
+<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 ```
 
 ## Contributing

@@ -50,7 +50,7 @@ public class AutoStartFlutterPlugin: NSObject, FlutterPlugin {
             // For macOS < 13.0, we just return false indicating failure/unsupported.
             result(false)
         }
-    case "startForegroundService", "stopForegroundService":
+    case "startForegroundService", "stopForegroundService", "scheduleTask":
         result(false)
     default:
       result(FlutterMethodNotImplemented)

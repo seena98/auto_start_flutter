@@ -122,9 +122,52 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
                     result.error("INVALID_ARGUMENT", "Package name and activity name must not be null", null)
                 }
             }
+            "scheduleTask" -> {
+                val timestamp = call.argument<Long>("timestamp")
+                val callbackHandle = call.argument<Long>("callbackHandle")
+                val taskId = call.argument<String>("taskId")
+                
+                if (timestamp != null && callbackHandle != null && taskId != null) {
+                    val success = scheduleAndroidAlarm(timestamp, callbackHandle, taskId)
+                    result.success(success)
+                } else {
+                    result.error("INVALID_ARGUMENT", "timestamp, callbackHandle, and taskId must not be null", null)
+                }
+            }
             else -> {
                 result.notImplemented()
             }
+        }
+    }
+
+    private fun scheduleAndroidAlarm(timestamp: Long, callbackHandle: Long, taskId: String): Boolean {
+        return try {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+            val intent = Intent(context, ScheduledTaskReceiver::class.java).apply {
+                putExtra(ScheduledTaskReceiver.EXTRA_CALLBACK_HANDLE, callbackHandle)
+                putExtra(ScheduledTaskReceiver.EXTRA_TASK_ID, taskId)
+            }
+            
+            val pendingIntent = android.app.PendingIntent.getBroadcast(
+                context,
+                taskId.hashCode(),
+                intent,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+                } else {
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT
+                }
+            )
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, timestamp, pendingIntent)
+            } else {
+                alarmManager.setExact(android.app.AlarmManager.RTC_WAKEUP, timestamp, pendingIntent)
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("AutoStartPlugin", "Failed to schedule alarm: ${e.message}")
+            false
         }
     }
 
