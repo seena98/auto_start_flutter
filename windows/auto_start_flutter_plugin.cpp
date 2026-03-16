@@ -1,4 +1,6 @@
+#include <initguid.h>
 #include "auto_start_flutter_plugin.h"
+
 #include <auto_start_flutter/auto_start_flutter_plugin.h>
 
 #include <shellapi.h>
