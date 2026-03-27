@@ -24,7 +24,7 @@ A Flutter plugin to help manage background execution permissions on **Android, i
 Add the package to your `pubspec.yaml`:
 
 ```yaml
-  auto_start_flutter: ^1.2.0
+  auto_start_flutter: ^1.3.0
 ```
 
 Import the package:
@@ -130,6 +130,23 @@ The plugin provides advanced lifecycle hooks to natively launch your app in the 
     await stopForegroundService();
     ```
     *Note: On Android, you must manually add the `FOREGROUND_SERVICE` permission to your `AndroidManifest.xml` (see Mandatory Setup below).*
+
+3. **Exact Scheduling & Alarms (`scheduleTask`)**: Schedule a task to run precisely at a future timestamp.
+    * **Android**: Uses `AlarmManager` for highly accurate background wakes, triggering a headless Dart callback even in Doze mode.
+    * **iOS & macOS**: Apple strictly prohibits generic headless background wakes at exact times. Therefore, this API relies on `UNUserNotificationCenter`. It will schedule a Local Notification for the exact timestamp. When the user taps the notification, the app opens, and `getLaunchArguments` will contain the `taskId` and `callbackHandle`. This will prompt the user for Notification Permissions the first time it is called.
+    * **Windows**: Natively interfaces with the Windows Task Scheduler COM API.
+    * **Linux**: Automatically manages `systemd` user timers.
+
+    ```dart
+    final at = DateTime.now().add(Duration(minutes: 5));
+    bool success = await scheduleTask(at, myScheduledTaskCallback, taskId: "my_task_1");
+    
+    // On app startup, check if we were launched by a scheduled task
+    final args = await getLaunchArguments();
+    if (args['scheduledTaskId'] == 'my_task_1') {
+      print("Woke up from scheduled task!");
+    }
+    ```
 
 ### Battery Optimization (Android & Windows)
 Android's Doze mode and App Standby can restrict background processing. On Windows, power settings can similarly affect background performance. On iOS, this API returns `true` (disabled) to maintain API compatibility.

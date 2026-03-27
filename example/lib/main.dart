@@ -160,11 +160,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _testScheduleTask() async {
-    // Schedule task for 1 minute from now
-    final at = DateTime.now().add(Duration(minutes: 1));
-    bool success = await scheduleTask(at, myScheduledTaskCallback, taskId: "test_task_1");
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Task Scheduled for 1 min from now: $success")));
+    final TimeOfDay? timeOfDay = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (timeOfDay != null) {
+      final now = DateTime.now();
+      var scheduledDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        timeOfDay.hour,
+        timeOfDay.minute,
+      );
+
+      // If the selected time is before now, schedule for tomorrow
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+
+      bool success = await scheduleTask(scheduledDate, myScheduledTaskCallback, taskId: "test_task_${scheduledDate.millisecondsSinceEpoch}");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Task Scheduled for ${scheduledDate.toLocal()}: $success")));
+    }
   }
 
 
@@ -241,7 +260,7 @@ class _HomePageState extends State<HomePage> {
               Text("Phase 2 Features", style: TextStyle(fontWeight: FontWeight.bold)),
               ElevatedButton(
                 onPressed: _testScheduleTask,
-                child: Text("Schedule Task (1 min)"),
+                child: Text("Schedule Task (Pick Time)"),
               ),
               SizedBox(height: 40),
             ],

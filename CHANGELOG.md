@@ -1,3 +1,8 @@
+## 1.3.0
+* **Feature (Phase 2 - Apple)**: Added `scheduleTask` implementation for iOS and macOS natively using `UNUserNotificationCenter` for precise local notifications.
+* **Feature (Phase 2 - Apple)**: Implemented `getLaunchArguments` for iOS and macOS to capture notification payloads when the app receives a scheduled task trigger.
+* **Improvement**: Updated Example App with a native interactive time picker to properly demonstrate exact scheduling across supported platforms.
+
 ## 1.2.0
 * **Improvement (Android)**: Refined `isAutoStartPermission` logic to query actual intent resolution via Package Manager, ensuring more accurate availability reporting.
 * **Fix (Windows)**: Resolved linker errors (`LNK2001`) and narrowing conversion warnings (`C4244`).
