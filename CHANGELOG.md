@@ -1,3 +1,9 @@
+## 1.2.0
+* **Improvement (Android)**: Refined `isAutoStartPermission` logic to query actual intent resolution via Package Manager, ensuring more accurate availability reporting.
+* **Fix (Windows)**: Resolved linker errors (`LNK2001`) and narrowing conversion warnings (`C4244`).
+* **Fix (Linux)**: Resolved undeclared identifier in the plugin implementation.
+* **Fix (Android)**: Resolved missing `Log` import.
+
 ## 1.1.0
 * **Feature (Phase 2)**: Added `scheduleTask` API to schedule top-level Dart callbacks at specific times.
     * **Android**: Integrated with `AlarmManager` for exact alarms even in Doze mode.

@@ -42,12 +42,24 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
                 }
             }
             "isAutoStartPermission" -> {
-                // We return true if the manufacturer is one we have intents for.
-                // It's a best-guess "is this feature relevant?" check.
-                val manufacturer = Build.MANUFACTURER.lowercase()
-                val knownManufacturers = listOf("xiaomi", "redmi", "poco", "oppo", "vivo", "huawei", "honor", "samsung", "oneplus", "nokia", "asus", "letv", "meizu", "htc", "realme", "infinix", "tecno", "itel", "lenovo", "zte", "nubia")
-                result.success(knownManufacturers.contains(manufacturer))
-            }
+                 val intents = AutoStartIntents.getIntents(context)
+                 var found = false
+                 for (intent in intents) {
+                     try {
+                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                         val list = context.packageManager.queryIntentActivities(
+                             intent, PackageManager.MATCH_DEFAULT_ONLY
+                         )
+                         if (list.size > 0) {
+                             found = true
+                             break
+                         }
+                     } catch (e: Exception) {
+                         // Ignore and try next intent
+                     }
+                 }
+                 result.success(found)
+             }
             "isBatteryOptimizationDisabled" -> {
                 val packageName = context.packageName
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
