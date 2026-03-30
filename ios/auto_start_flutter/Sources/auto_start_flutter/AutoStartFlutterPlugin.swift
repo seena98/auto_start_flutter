@@ -5,6 +5,7 @@ import UserNotifications
 public class AutoStartFlutterPlugin: NSObject, FlutterPlugin, UNUserNotificationCenterDelegate {
     
     var launchArgs: [String: Any]? = nil
+    var backgroundEngines: [Int64: FlutterEngine] = [:]
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "com.techflow.co/auto_start_flutter", binaryMessenger: registrar.messenger())
@@ -61,6 +62,29 @@ public class AutoStartFlutterPlugin: NSObject, FlutterPlugin, UNUserNotification
             result("Apple")
         case "isBatteryOptimizationDisabled":
              result(true)
+        case "executeInBackground":
+            guard let args = call.arguments as? [String: Any] else {
+                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing required arguments", details: nil))
+                return
+            }
+            let callbackHandle = args["callbackHandle"] as? Int64 ?? 0
+            if callbackHandle != 0 {
+                if let callbackInfo = FlutterCallbackCache.lookupCallbackInformation(callbackHandle) {
+                    let engine = FlutterEngine(name: "auto_start_background_engine_\(callbackHandle)", project: nil, allowHeadlessExecution: true)
+                    let isRunning = engine.run(withEntrypoint: callbackInfo.callbackName, libraryURI: callbackInfo.callbackLibraryPath)
+                    
+                    if isRunning {
+                        self.backgroundEngines[callbackHandle] = engine
+                        result(true)
+                    } else {
+                        result(FlutterError(code: "ENGINE_ERROR", message: "Failed to run background engine", details: nil))
+                    }
+                } else {
+                    result(FlutterError(code: "INVALID_CALLBACK", message: "Could not find callback info", details: nil))
+                }
+            } else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "callbackHandle must not be zero", details: nil))
+            }
         case "scheduleTask":
             guard let args = call.arguments as? [String: Any],
                   let timestamp = args["timestamp"] as? Int64,

@@ -136,6 +136,19 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
                     result.error("INVALID_ARGUMENT", "Package name and activity name must not be null", null)
                 }
             }
+            "executeInBackground" -> {
+                val callbackHandle = call.argument<Long>("callbackHandle")
+                if (callbackHandle != null) {
+                    try {
+                        HeadlessEngineHelper.startHeadlessCallback(context, callbackHandle)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("HEADLESS_EXEC_ERROR", e.message, null)
+                    }
+                } else {
+                    result.error("INVALID_ARGUMENT", "callbackHandle must not be null", null)
+                }
+            }
             "scheduleTask" -> {
                 val timestamp = call.argument<Long>("timestamp")
                 val callbackHandle = call.argument<Long>("callbackHandle")

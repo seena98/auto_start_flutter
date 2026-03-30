@@ -6,6 +6,7 @@ import UserNotifications
 public class AutoStartFlutterPlugin: NSObject, FlutterPlugin, UNUserNotificationCenterDelegate {
     
     var launchArgs: [String: Any]? = nil
+    var backgroundEngines: [Int64: FlutterEngine] = [:]
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "com.techflow.co/auto_start_flutter", binaryMessenger: registrar.messenger)
@@ -59,6 +60,8 @@ public class AutoStartFlutterPlugin: NSObject, FlutterPlugin, UNUserNotification
                  NSWorkspace.shared.open(url)
             }
             result(true)
+        case "executeInBackground":
+            result(false) // Handled natively in Dart via Isolate.spawn for macOS
         case "scheduleTask":
             guard let args = call.arguments as? [String: Any],
                   let timestamp = args["timestamp"] as? Int64,

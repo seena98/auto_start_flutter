@@ -24,7 +24,7 @@ A Flutter plugin to help manage background execution permissions on **Android, i
 Add the package to your `pubspec.yaml`:
 
 ```yaml
-  auto_start_flutter: ^1.3.0
+  auto_start_flutter: ^1.4.0
 ```
 
 Import the package:
@@ -45,6 +45,7 @@ import 'package:auto_start_flutter/auto_start_flutter.dart';
 | `openCustomSetting` | Opens specific activity | **Not Supported** | **Not Supported** | **Not Supported** | **Not Supported** |
 | `registerBootCallback` | Uses `BOOT_COMPLETED` trigger | **Not Supported** | Writes to Startup Registry | Registers via `SMAppService` | Writes `-autostart` to `~/.config/autostart/` |
 | `startForegroundService` | Starts Foreground Service | **Not Supported** | Returns `false` (No-op) | Returns `false` (No-op) | Returns `false` (No-op) |
+| `executeInBackground` | Headless Engine | Headless Engine | Hidden Process | Headless Engine | Hidden Process |
 
 ## Usage
 ### AutoStart Permission / Background Refresh
@@ -148,6 +149,22 @@ The plugin provides advanced lifecycle hooks to natively launch your app in the 
     }
     ```
 
+4. **Headless Execution (`executeInBackground`) (Phase 3)**: Execute a Dart callback immediately in the background without bringing the app to the foreground or attaching a UI.
+    * **Android/Apple**: Instantiates a dedicated headless `FlutterEngine` / Isolate.
+    * **Desktop (Windows/Linux)**: Spawns a hidden background process via the native executable.
+
+    ```dart
+    // 1. Must be a top-level or static function
+    @pragma('vm:entry-point')
+    void myHeadlessTask() {
+      WidgetsFlutterBinding.ensureInitialized();
+      print("Running in the background instantly!");
+    }
+
+    // 2. Trigger execution
+    await executeInBackground(myHeadlessTask);
+    ```
+
 ### Battery Optimization (Android & Windows)
 Android's Doze mode and App Standby can restrict background processing. On Windows, power settings can similarly affect background performance. On iOS, this API returns `true` (disabled) to maintain API compatibility.
 
@@ -206,6 +223,9 @@ Required for `disableBatteryOptimization`.
 ```xml
 <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 ```
+
+### 5. Headless Execution (Phase 3)
+No special permissions are strictly required for `executeInBackground` to spin up the background isolate. However, if your headless task requires internet access or long-running CPU locks, ensure standard Flutter network permissions or battery optimization exemptions are handled.
 
 ## Contributing
 If you find any issues or would like to add support for more devices, please file an issue or pull request on GitHub.

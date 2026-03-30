@@ -15,6 +15,12 @@ void myScheduledTaskCallback() {
   debugPrint("Scheduled Task execution triggered! Running headlessly.");
 }
 
+@pragma('vm:entry-point')
+void myExecuteInBackgroundCallback() {
+  WidgetsFlutterBinding.ensureInitialized();
+  debugPrint("Execute In Background triggered! Running headlessly right now.");
+}
+
 void main() {
   runApp(MyApp());
 }
@@ -186,6 +192,12 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _testExecuteInBackground() async {
+    bool success = await executeInBackground(myExecuteInBackgroundCallback);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Execute in Background: $success")));
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -261,6 +273,12 @@ class _HomePageState extends State<HomePage> {
               ElevatedButton(
                 onPressed: _testScheduleTask,
                 child: Text("Schedule Task (Pick Time)"),
+              ),
+              Divider(height: 40),
+              Text("Phase 3 Features", style: TextStyle(fontWeight: FontWeight.bold)),
+              ElevatedButton(
+                onPressed: _testExecuteInBackground,
+                child: Text("Test Headless Execution"),
               ),
               SizedBox(height: 40),
             ],

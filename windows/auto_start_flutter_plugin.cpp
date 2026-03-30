@@ -146,6 +146,8 @@ void AutoStartFlutterPlugin::HandleMethodCall(
       LocalFree(szArglist);
     }
     result->Success(flutter::EncodableValue(args_map));
+  } else if (method_call.method_name().compare("executeInBackground") == 0) {
+    result->Success(flutter::EncodableValue(false));
   } else if (method_call.method_name().compare("scheduleTask") == 0) {
     const auto *arguments =
         std::get_if<flutter::EncodableMap>(method_call.arguments());

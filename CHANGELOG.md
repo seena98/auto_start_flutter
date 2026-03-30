@@ -1,3 +1,11 @@
+## 1.4.0
+* **Major Feature (Phase 3)**: Added `executeInBackground` API for immediate, headless execution of Dart callbacks without attaching a UI.
+    * **Android**: Leverages a dedicated headless `FlutterEngine` to run background tasks efficiently without disruption.
+    * **iOS**: Leverages a secondary natively-isolated `FlutterEngine` via `FlutterCallbackCache` to run tasks headlessly.
+    * **macOS/Windows/Linux**: Implemented highly efficient background execution using Dart's native `Isolate.spawn` API natively.
+* **Refactor**: Replaced desktop background process cloning with native Dart isolates to improve RAM efficiency, reduce duplicate application instances in desktop environments, and fix compiler warnings on macOS edge cases.
+* **Documentation Update**: Outlined `executeInBackground` behavior and required permission contexts for Phase 3 background tasks.
+
 ## 1.3.0
 * **Feature (Phase 2 - Apple)**: Added `scheduleTask` implementation for iOS and macOS natively using `UNUserNotificationCenter` for precise local notifications.
 * **Feature (Phase 2 - Apple)**: Implemented `getLaunchArguments` for iOS and macOS to capture notification payloads when the app receives a scheduled task trigger.

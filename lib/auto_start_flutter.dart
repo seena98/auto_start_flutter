@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -165,6 +167,38 @@ Future<Map<String, dynamic>> getLaunchArguments() async {
   } catch (e) {
     debugPrint(e.toString());
     return {};
+  }
+}
+
+/// Executes the given [callback] immediately in a headless background Flutter engine.
+/// [callback] must be a top-level or static function.
+Future<bool> executeInBackground(Function callback) async {
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    try {
+      await Isolate.spawn((_) {
+        callback();
+      }, null);
+      return true;
+    } catch (e) {
+      debugPrint("Isolate spawn error: $e");
+      return false;
+    }
+  }
+
+  final CallbackHandle? handle = PluginUtilities.getCallbackHandle(callback);
+  if (handle == null) {
+    debugPrint("Failed to get callback handle. Ensure the function is static or top-level.");
+    return false;
+  }
+
+  try {
+    final bool? result = await _channel.invokeMethod('executeInBackground', {
+      'callbackHandle': handle.toRawHandle(),
+    });
+    return result ?? false;
+  } catch (e) {
+    debugPrint(e.toString());
+    return false;
   }
 }
 
