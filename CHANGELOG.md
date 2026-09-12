@@ -1,3 +1,8 @@
+## 1.4.1
+* **Android**: Migrated to Built-in Kotlin per Flutter breaking changes guide (removed Kotlin Gradle Plugin `kotlin-android` and replaced `kotlinOptions` with `kotlin.compilerOptions`).
+* **Android**: Removed obsolete `jcenter()` repository from Gradle configuration.
+* **Android**: Removed deprecated `package` attribute from `AndroidManifest.xml`.
+
 ## 1.4.0
 * **Major Feature (Phase 3)**: Added `executeInBackground` API for immediate, headless execution of Dart callbacks without attaching a UI.
     * **Android**: Leverages a dedicated headless `FlutterEngine` to run background tasks efficiently without disruption.

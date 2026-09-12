@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {}
 }
@@ -9,10 +9,11 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     // v8+ gradle fix
     subprojects {
+        project.plugins.apply('kotlin-android')
         afterEvaluate { project ->
             if (project.hasProperty('android')) {
                 project.android {
