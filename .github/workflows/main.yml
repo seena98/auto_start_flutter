@@ -40,7 +40,7 @@ jobs:
       - name: Build Example APK
         run: |
           cd example
-          flutter build apk --debug
+          flutter build apk --debug --android-skip-build-dependency-validation
 
   build_ios:
     name: Build iOS
