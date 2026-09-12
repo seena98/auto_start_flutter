@@ -85,6 +85,56 @@ Future<void> disableBatteryOptimization() async {
   }
 }
 
+/// Opens the system battery optimization settings page.
+///
+/// Unlike [disableBatteryOptimization] which directly prompts the user with
+/// `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` (which is restricted by Google Play policy),
+/// this method opens the standard system battery optimization list (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`).
+/// Users can manually whitelist the app without triggering Google Play policy restrictions.
+///
+/// Returns [true] if the settings page was opened, [false] otherwise or on unsupported platforms.
+Future<bool> openBatteryOptimizationSettings() async {
+  try {
+    final bool? success =
+        await _channel.invokeMethod('openBatteryOptimizationSettings');
+    return success ?? false;
+  } catch (e) {
+    debugPrint(e.toString());
+    return false;
+  }
+}
+
+/// Checks whether the app has permission to schedule exact alarms (Android 12+ / API 31+).
+///
+/// Returns [true] on Android versions below 12, on non-Android platforms, or if permission is granted.
+/// Returns [false] on Android 12+ if exact alarm permission has been revoked.
+Future<bool> canScheduleExactAlarms() async {
+  try {
+    final bool? canSchedule =
+        await _channel.invokeMethod('canScheduleExactAlarms');
+    return canSchedule ?? true;
+  } catch (e) {
+    debugPrint(e.toString());
+    return true;
+  }
+}
+
+/// Opens the system settings page for exact alarm permissions (Android 12+ / API 31+).
+///
+/// On Android 12+, navigates the user to the app's "Alarms & reminders" settings page
+/// where they can grant permission to schedule exact alarms.
+///
+/// Returns [true] if the settings page was opened, [false] otherwise or on unsupported platforms.
+Future<bool> openExactAlarmSettings() async {
+  try {
+    final bool? success = await _channel.invokeMethod('openExactAlarmSettings');
+    return success ?? false;
+  } catch (e) {
+    debugPrint(e.toString());
+    return false;
+  }
+}
+
 /// Registers a callback to be executed headlessly when the device boots up.
 /// Only supported on Android in Phase 1.
 /// The [callback] must be a top-level or static function decorated with `@pragma('vm:entry-point')`.
@@ -92,7 +142,8 @@ Future<bool> registerBootCallback(Function callback) async {
   try {
     final CallbackHandle? handle = PluginUtilities.getCallbackHandle(callback);
     if (handle == null) {
-      debugPrint("Failed to get callback handle. Ensure the function is static or top-level and uses @pragma('vm:entry-point').");
+      debugPrint(
+          "Failed to get callback handle. Ensure the function is static or top-level and uses @pragma('vm:entry-point').");
       return false;
     }
     final bool? success = await _channel.invokeMethod('registerBootCallback', {
@@ -109,9 +160,12 @@ Future<bool> registerBootCallback(Function callback) async {
 /// This attaches a persistent notification to the status bar, preventing the OS from killing the app when it goes to the background.
 /// [title] and [content] are used to populate the persistent notification.
 /// Only supported on Android 8.0+.
-Future<bool> startForegroundService({String title = "Running in background", String content = "Keep-alive service is active."}) async {
+Future<bool> startForegroundService(
+    {String title = "Running in background",
+    String content = "Keep-alive service is active."}) async {
   try {
-    final bool? success = await _channel.invokeMethod('startForegroundService', {
+    final bool? success =
+        await _channel.invokeMethod('startForegroundService', {
       'title': title,
       'content': content,
     });
@@ -137,14 +191,16 @@ Future<bool> stopForegroundService() async {
 /// [at] is the exact time the task should fire.
 /// [callback] must be a top-level or static function decorated with `@pragma('vm:entry-point')`.
 /// [taskId] is an optional unique identifier for the task.
-Future<bool> scheduleTask(DateTime at, Function callback, {String? taskId}) async {
+Future<bool> scheduleTask(DateTime at, Function callback,
+    {String? taskId}) async {
   try {
     final CallbackHandle? handle = PluginUtilities.getCallbackHandle(callback);
     if (handle == null) {
-      debugPrint("Failed to get callback handle. Ensure the function is static or top-level.");
+      debugPrint(
+          "Failed to get callback handle. Ensure the function is static or top-level.");
       return false;
     }
-    
+
     final bool? success = await _channel.invokeMethod('scheduleTask', {
       'timestamp': at.millisecondsSinceEpoch,
       'callbackHandle': handle.toRawHandle(),
@@ -187,7 +243,8 @@ Future<bool> executeInBackground(Function callback) async {
 
   final CallbackHandle? handle = PluginUtilities.getCallbackHandle(callback);
   if (handle == null) {
-    debugPrint("Failed to get callback handle. Ensure the function is static or top-level.");
+    debugPrint(
+        "Failed to get callback handle. Ensure the function is static or top-level.");
     return false;
   }
 
@@ -201,4 +258,3 @@ Future<bool> executeInBackground(Function callback) async {
     return false;
   }
 }
-

@@ -1,3 +1,10 @@
+## 1.5.0
+* **Feature (Exact Alarms - Android 12+)**: Added `canScheduleExactAlarms()` and `openExactAlarmSettings()` APIs to check and navigate to system "Alarms & reminders" settings for exact background alarms.
+* **Feature (Google Play Policy Compliant Battery Settings)**: Added `openBatteryOptimizationSettings()` navigating to the standard system battery optimization screen (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`), providing a 100% Google Play policy-safe alternative to direct dialog prompts.
+* **Cross-Platform**: Gracefully supported `openBatteryOptimizationSettings` across iOS, macOS, Windows, and Linux.
+* **Example App**: Updated with interactive status checks and UI buttons for exact alarm management and policy-safe battery optimization settings.
+* **Tests**: Added unit tests covering `canScheduleExactAlarms`, `openExactAlarmSettings`, and `openBatteryOptimizationSettings`.
+
 ## 1.4.1
 * **Android**: Migrated to Built-in Kotlin per Flutter breaking changes guide (removed Kotlin Gradle Plugin `kotlin-android` and replaced `kotlinOptions` with `kotlin.compilerOptions`).
 * **Android**: Removed obsolete `jcenter()` repository from Gradle configuration.

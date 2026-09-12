@@ -25,7 +25,6 @@ void main() {
   runApp(MyApp());
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -46,6 +45,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String _batteryOptimizationStatus = "Unknown";
+  String _exactAlarmStatus = "Unknown";
   String _manufacturer = "Unknown";
   String _launchArgs = "None";
 
@@ -55,6 +55,32 @@ class _HomePageState extends State<HomePage> {
     initAutoStart();
     _getManufacturer();
     _checkLaunchArgs();
+    _checkExactAlarm();
+  }
+
+  Future<void> _checkExactAlarm() async {
+    bool canSchedule = await canScheduleExactAlarms();
+    setState(() {
+      _exactAlarmStatus = canSchedule ? "Allowed (Yes)" : "Denied (No)";
+    });
+  }
+
+  Future<void> _openExactAlarm() async {
+    bool success = await openExactAlarmSettings();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(success
+            ? "Opening Exact Alarm Settings..."
+            : "Could not open Exact Alarm settings (pre-Android 12 or unsupported).")));
+  }
+
+  Future<void> _openBatteryOptimizationSettings() async {
+    bool success = await openBatteryOptimizationSettings();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(success
+            ? "Opening Battery Optimization Settings..."
+            : "Could not open Battery Optimization settings.")));
   }
 
   Future<void> _checkLaunchArgs() async {
@@ -66,7 +92,6 @@ class _HomePageState extends State<HomePage> {
       debugPrint("App launched with arguments: $args");
     }
   }
-
 
   Future<void> _getManufacturer() async {
     String? manufacturer = await getDeviceManufacturer();
@@ -85,8 +110,8 @@ class _HomePageState extends State<HomePage> {
       debugPrint("Auto start available: $isAvailable");
       //if available then navigate to auto-start setting page.
       if (isAvailable) {
-         bool success = await getAutoStartPermission();
-         debugPrint("Auto start permission open success: $success");
+        bool success = await getAutoStartPermission();
+        debugPrint("Auto start permission open success: $success");
       }
     } on PlatformException catch (e) {
       debugPrint(e.toString());
@@ -105,13 +130,14 @@ class _HomePageState extends State<HomePage> {
   Future<void> _disableBatteryOptimization() async {
     await disableBatteryOptimization();
   }
-  
+
   Future<void> _openAutoStart() async {
     bool success = await getAutoStartPermission();
     if (!success) {
       if (!mounted) return;
       // Now this context is below MaterialApp, so ScaffoldMessenger works.
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Could not open Auto-Start settings directly.")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Could not open Auto-Start settings directly.")));
     }
   }
 
@@ -130,8 +156,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openCustomSetting() async {
-    if (_packageNameController.text.isEmpty || _activityNameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please enter both package and activity names")));
+    if (_packageNameController.text.isEmpty ||
+        _activityNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Please enter both package and activity names")));
       return;
     }
     bool success = await openCustomSetting(
@@ -140,14 +168,16 @@ class _HomePageState extends State<HomePage> {
     );
     if (!success) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to open custom setting")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to open custom setting")));
     }
   }
 
   Future<void> _testRegisterBootCallback() async {
     bool success = await registerBootCallback(myBootCallback);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Boot Callback Registered: $success")));
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Boot Callback Registered: $success")));
   }
 
   Future<void> _testStartForegroundService() async {
@@ -156,13 +186,15 @@ class _HomePageState extends State<HomePage> {
       content: "This prevents the app from being killed.",
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Started Foreground Service: $success")));
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Started Foreground Service: $success")));
   }
 
   Future<void> _testStopForegroundService() async {
     bool success = await stopForegroundService();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Stopped Foreground Service: $success")));
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Stopped Foreground Service: $success")));
   }
 
   Future<void> _testScheduleTask() async {
@@ -186,18 +218,21 @@ class _HomePageState extends State<HomePage> {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
 
-      bool success = await scheduleTask(scheduledDate, myScheduledTaskCallback, taskId: "test_task_${scheduledDate.millisecondsSinceEpoch}");
+      bool success = await scheduleTask(scheduledDate, myScheduledTaskCallback,
+          taskId: "test_task_${scheduledDate.millisecondsSinceEpoch}");
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Task Scheduled for ${scheduledDate.toLocal()}: $success")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content:
+              Text("Task Scheduled for ${scheduledDate.toLocal()}: $success")));
     }
   }
 
   Future<void> _testExecuteInBackground() async {
     bool success = await executeInBackground(myExecuteInBackgroundCallback);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Execute in Background: $success")));
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Execute in Background: $success")));
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +249,6 @@ class _HomePageState extends State<HomePage> {
               SizedBox(height: 10),
               Text("Launch Args: $_launchArgs"),
               SizedBox(height: 20),
-
               Text("Battery Optimization: $_batteryOptimizationStatus"),
               SizedBox(height: 10),
               ElevatedButton(
@@ -223,7 +257,11 @@ class _HomePageState extends State<HomePage> {
               ),
               ElevatedButton(
                 onPressed: _disableBatteryOptimization,
-                child: Text("Disable Battery Optimization"),
+                child: Text("Disable Battery Optimization (Direct Dialog)"),
+              ),
+              ElevatedButton(
+                onPressed: _openBatteryOptimizationSettings,
+                child: Text("Open Battery Settings (Google Play Safe)"),
               ),
               SizedBox(height: 20),
               ElevatedButton(
@@ -235,19 +273,22 @@ class _HomePageState extends State<HomePage> {
                 child: Text("Open App Info"),
               ),
               Divider(height: 40),
-              Text("Test Custom Intent", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("Test Custom Intent",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
                   controller: _packageNameController,
-                  decoration: InputDecoration(labelText: "Package Name", border: OutlineInputBorder()),
+                  decoration: InputDecoration(
+                      labelText: "Package Name", border: OutlineInputBorder()),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
                   controller: _activityNameController,
-                  decoration: InputDecoration(labelText: "Activity Name", border: OutlineInputBorder()),
+                  decoration: InputDecoration(
+                      labelText: "Activity Name", border: OutlineInputBorder()),
                 ),
               ),
               ElevatedButton(
@@ -255,7 +296,8 @@ class _HomePageState extends State<HomePage> {
                 child: Text("Open Custom Setting"),
               ),
               Divider(height: 40),
-              Text("Phase 1 Features", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("Phase 1 Features",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               ElevatedButton(
                 onPressed: _testRegisterBootCallback,
                 child: Text("Register Boot Callback"),
@@ -269,20 +311,31 @@ class _HomePageState extends State<HomePage> {
                 child: Text("Stop Foreground Service"),
               ),
               Divider(height: 40),
-              Text("Phase 2 Features", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("Phase 2 Features (Exact Alarms & Tasks)",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("Exact Alarm: $_exactAlarmStatus"),
+              SizedBox(height: 6),
+              ElevatedButton(
+                onPressed: _checkExactAlarm,
+                child: Text("Check Exact Alarm (Android 12+)"),
+              ),
+              ElevatedButton(
+                onPressed: _openExactAlarm,
+                child: Text("Open Exact Alarm Settings"),
+              ),
               ElevatedButton(
                 onPressed: _testScheduleTask,
                 child: Text("Schedule Task (Pick Time)"),
               ),
               Divider(height: 40),
-              Text("Phase 3 Features", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("Phase 3 Features",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               ElevatedButton(
                 onPressed: _testExecuteInBackground,
                 child: Text("Test Headless Execution"),
               ),
               SizedBox(height: 40),
             ],
-
           ),
         ),
       ),

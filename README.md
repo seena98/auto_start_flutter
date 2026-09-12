@@ -24,7 +24,7 @@ A Flutter plugin to help manage background execution permissions on **Android, i
 Add the package to your `pubspec.yaml`:
 
 ```yaml
-  auto_start_flutter: ^1.4.1
+  auto_start_flutter: ^1.5.0
 ```
 
 Import the package:
@@ -41,7 +41,10 @@ import 'package:auto_start_flutter/auto_start_flutter.dart';
 | `openAppInfo` | Opens App Info | Opens App Settings | Opens Apps & Features | Opens General Settings | Returns `true` (No-op) |
 | `getDeviceManufacturer` | Returns `Build.MANUFACTURER` | Returns "Apple" | Returns "Microsoft" | Returns "Apple" | Returns "Linux" |
 | `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) | Returns `true` | Returns `true` | Returns `true` |
-| `disableBatteryOptimization` | Opens ignore battery optimization settings | Opens App Settings | Opens Power & Sleep | Opens Energy Saver | Returns `true` (No-op) |
+| `disableBatteryOptimization` | Direct dialog prompt (`REQUEST_IGNORE...`) | Opens App Settings | Opens Power & Sleep | Opens Energy Saver | Returns `true` (No-op) |
+| `openBatteryOptimizationSettings` | Opens battery optimization list (Google Play safe) | Opens App Settings | Opens Power & Sleep | Opens Energy Saver | Returns `true` (No-op) |
+| `canScheduleExactAlarms` | Checks `AlarmManager.canScheduleExactAlarms()` (Android 12+) | Returns `true` | Returns `true` | Returns `true` | Returns `true` |
+| `openExactAlarmSettings` | Opens "Alarms & reminders" settings (Android 12+) | Returns `false` (No-op) | Returns `false` (No-op) | Returns `false` (No-op) | Returns `false` (No-op) |
 | `openCustomSetting` | Opens specific activity | **Not Supported** | **Not Supported** | **Not Supported** | **Not Supported** |
 | `registerBootCallback` | Uses `BOOT_COMPLETED` trigger | **Not Supported** | Writes to Startup Registry | Registers via `SMAppService` | Writes `-autostart` to `~/.config/autostart/` |
 | `startForegroundService` | Starts Foreground Service | **Not Supported** | Returns `false` (No-op) | Returns `false` (No-op) | Returns `false` (No-op) |
@@ -149,6 +152,18 @@ The plugin provides advanced lifecycle hooks to natively launch your app in the 
     }
     ```
 
+    **Exact Alarm Permissions (Android 12+ / API 31+)**:
+    Starting in Android 12, apps scheduling exact alarms must verify permission:
+    ```dart
+    // Check if exact alarms can be scheduled
+    bool canSchedule = await canScheduleExactAlarms();
+
+    if (!canSchedule) {
+      // Guide user to the system "Alarms & reminders" settings page
+      await openExactAlarmSettings();
+    }
+    ```
+
 4. **Headless Execution (`executeInBackground`) (Phase 3)**: Execute a Dart callback immediately in the background without bringing the app to the foreground or attaching a UI.
     * **Android/Apple**: Instantiates a dedicated headless `FlutterEngine` / Isolate.
     * **Desktop (Windows/Linux)**: Spawns a hidden background process via the native executable.
@@ -165,9 +180,8 @@ The plugin provides advanced lifecycle hooks to natively launch your app in the 
     await executeInBackground(myHeadlessTask);
     ```
 
-### Battery Optimization (Android & Windows)
-Android's Doze mode and App Standby can restrict background processing. On Windows, power settings can similarly affect background performance. On iOS, this API returns `true` (disabled) to maintain API compatibility.
-
+### Battery Optimization (Android, Windows, macOS, Linux)
+Android's Doze mode and App Standby can restrict background processing. On Windows and macOS, energy/power settings can similarly affect background performance.
 
 1. **Check Status**: Check if your app is already ignoring battery optimizations.
     ```dart
@@ -175,7 +189,18 @@ Android's Doze mode and App Standby can restrict background processing. On Windo
     print("Battery Optimization Disabled: $isExempt");
     ```
 
-2. **Request Exemption**: On Android 6.0+, this will trigger a direct system dialog asking the user to unrestrict your app's battery usage. On other platforms, it may open the system settings.
+2. **Open Battery Optimization Settings (Recommended & Google Play Safe)**:
+    Navigates the user to the standard system battery optimization list (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` on Android). This **does not require** declaring high-risk permissions or justifying policies in Google Play Console.
+    ```dart
+    if (!isExempt) {
+      await openBatteryOptimizationSettings();
+    }
+    ```
+
+3. **Direct Dialog Exemption (Requires Policy Declaration)**:
+    On Android 6.0+, prompts the user directly via a system dialog using `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`.
+    > [!WARNING]
+    > Google Play strictly limits apps requesting direct battery exemption dialogs. Only use `disableBatteryOptimization()` if your app qualifies under Google Play exemption policies. Otherwise, use `openBatteryOptimizationSettings()`.
     ```dart
     if (!isExempt) {
       await disableBatteryOptimization();
@@ -219,10 +244,11 @@ Required for `scheduleTask`.
 ```
 
 ### 4. Battery Optimization Exemption
-Required for `disableBatteryOptimization`.
+Required for `disableBatteryOptimization` (direct dialog prompt):
 ```xml
 <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 ```
+*Note: If you use `openBatteryOptimizationSettings()`, no special permission is required in your `AndroidManifest.xml`!*
 
 ### 5. Headless Execution (Phase 3)
 No special permissions are strictly required for `executeInBackground` to spin up the background isolate. However, if your headless task requires internet access or long-running CPU locks, ensure standard Flutter network permissions or battery optimization exemptions are handled.

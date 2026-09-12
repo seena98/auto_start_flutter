@@ -81,10 +81,12 @@ void AutoStartFlutterPlugin::HandleMethodCall(
     // compatibility.
     result->Success(flutter::EncodableValue(true));
   } else if (method_call.method_name().compare("disableBatteryOptimization") ==
-             0) {
+                 0 ||
+             method_call.method_name().compare(
+                 "openBatteryOptimizationSettings") == 0) {
     // Create a dummy result for compatibility
     ShellExecute(0, 0, L"ms-settings:powersleep", 0, 0, SW_SHOW);
-    result->Success();
+    result->Success(flutter::EncodableValue(true));
   } else if (method_call.method_name().compare("openAppInfo") == 0) {
     ShellExecute(0, 0, L"ms-settings:appsfeatures-app", 0, 0, SW_SHOW);
     result->Success();

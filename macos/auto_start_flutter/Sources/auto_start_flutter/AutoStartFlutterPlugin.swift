@@ -50,7 +50,7 @@ public class AutoStartFlutterPlugin: NSObject, FlutterPlugin, UNUserNotification
             result("Apple")
         case "isBatteryOptimizationDisabled":
             result(true)
-        case "disableBatteryOptimization":
+        case "disableBatteryOptimization", "openBatteryOptimizationSettings":
             if let url = URL(string: "x-apple.systempreferences:com.apple.preference.energy") {
                 NSWorkspace.shared.open(url)
             }

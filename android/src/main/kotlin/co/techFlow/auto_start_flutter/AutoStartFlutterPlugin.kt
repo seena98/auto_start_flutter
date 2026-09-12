@@ -11,6 +11,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import android.app.AlarmManager
 import android.util.Log
 import io.flutter.plugin.common.MethodChannel.Result
 
@@ -80,6 +81,45 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
                     context.startActivity(intent)
                 }
                 result.success(null)
+            }
+            "openBatteryOptimizationSettings" -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    try {
+                        val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        context.startActivity(intent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.success(false)
+                    }
+                } else {
+                    result.success(false)
+                }
+            }
+            "canScheduleExactAlarms" -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+                    result.success(alarmManager?.canScheduleExactAlarms() ?: true)
+                } else {
+                    result.success(true)
+                }
+            }
+            "openExactAlarmSettings" -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    try {
+                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                            data = Uri.parse("package:" + context.packageName)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        context.startActivity(intent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.success(false)
+                    }
+                } else {
+                    result.success(false)
+                }
             }
             "startForegroundService" -> {
                 try {

@@ -46,7 +46,7 @@ public class AutoStartFlutterPlugin: NSObject, FlutterPlugin, UNUserNotification
             } else {
                 result(false)
             }
-        case "permit-auto-start", "openAppInfo", "disableBatteryOptimization":
+        case "permit-auto-start", "openAppInfo", "disableBatteryOptimization", "openBatteryOptimizationSettings":
             if let url = URL(string: UIApplication.openSettingsURLString) {
                 if UIApplication.shared.canOpenURL(url) {
                     UIApplication.shared.open(url, options: [:], completionHandler: { success in

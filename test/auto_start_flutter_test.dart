@@ -3,12 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:auto_start_flutter/auto_start_flutter.dart';
 
 void main() {
-  const MethodChannel channel = MethodChannel('com.techflow.co/auto_start_flutter');
+  const MethodChannel channel =
+      MethodChannel('com.techflow.co/auto_start_flutter');
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -22,6 +24,12 @@ void main() {
             return false;
           case 'disableBatteryOptimization':
             return null;
+          case 'openBatteryOptimizationSettings':
+            return true;
+          case 'canScheduleExactAlarms':
+            return true;
+          case 'openExactAlarmSettings':
+            return true;
           case 'openAppInfo':
             return null;
           default:
@@ -32,7 +40,8 @@ void main() {
   });
 
   tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
   });
 
   test('isAutoStartAvailable', () async {
@@ -49,5 +58,17 @@ void main() {
 
   test('isBatteryOptimizationDisabled', () async {
     expect(await isBatteryOptimizationDisabled, false);
+  });
+
+  test('openBatteryOptimizationSettings', () async {
+    expect(await openBatteryOptimizationSettings(), true);
+  });
+
+  test('canScheduleExactAlarms', () async {
+    expect(await canScheduleExactAlarms(), true);
+  });
+
+  test('openExactAlarmSettings', () async {
+    expect(await openExactAlarmSettings(), true);
   });
 }

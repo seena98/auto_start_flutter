@@ -33,7 +33,8 @@ auto_start_flutter_plugin_handle_method_call(AutoStartFlutterPlugin *self,
     response = is_auto_start_permission();
   } else if (strcmp(method, "getDeviceManufacturer") == 0) {
     response = get_device_manufacturer();
-  } else if (strcmp(method, "disableBatteryOptimization") == 0) {
+  } else if (strcmp(method, "disableBatteryOptimization") == 0 ||
+             strcmp(method, "openBatteryOptimizationSettings") == 0) {
     response = disable_battery_optimization();
   } else if (strcmp(method, "isBatteryOptimizationDisabled") == 0) {
     response = is_battery_optimization_disabled();
