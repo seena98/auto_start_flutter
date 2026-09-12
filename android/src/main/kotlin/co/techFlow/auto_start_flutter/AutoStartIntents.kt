@@ -10,6 +10,7 @@ import java.util.Locale
 
 object AutoStartIntents {
 
+    @Suppress("UNUSED_PARAMETER")
     fun getIntents(context: Context): List<Intent> {
         val intents = mutableListOf<Intent>()
         val manufacturer = Build.MANUFACTURER.lowercase(Locale.ROOT)
@@ -74,6 +75,10 @@ object AutoStartIntents {
                  intents.add(ComponentName("com.htc.pitroad", "com.htc.pitroad.landingpage.activity.LandingPageActivity").toIntent())
             }
             "realme" -> {
+                 intents.add(ComponentName("com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity").toIntent())
+                 intents.add(ComponentName("com.coloros.safecenter", "com.coloros.safecenter.startupapp.StartupAppListActivity").toIntent())
+                 intents.add(ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity").toIntent())
+                 intents.add(ComponentName("com.coloros.safe", "com.coloros.safe.permission.startup.StartupAppListActivity").toIntent())
                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                      intents.add(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
                  }

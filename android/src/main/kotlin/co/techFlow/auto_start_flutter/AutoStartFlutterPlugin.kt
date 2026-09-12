@@ -27,6 +27,9 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
+            "getPlatformVersion" -> {
+                result.success("Android " + Build.VERSION.RELEASE)
+            }
             "permit-auto-start" -> {
                 val success = openAutoStartSettings()
                 result.success(success)

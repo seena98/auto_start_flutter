@@ -2,6 +2,9 @@
 * **Android**: Migrated to Built-in Kotlin per Flutter breaking changes guide (removed Kotlin Gradle Plugin `kotlin-android` and replaced `kotlinOptions` with `kotlin.compilerOptions`).
 * **Android**: Removed obsolete `jcenter()` repository from Gradle configuration.
 * **Android**: Removed deprecated `package` attribute from `AndroidManifest.xml`.
+* **Android**: Added ColorOS / Oppo auto-start manager intents for Realme devices.
+* **Android**: Implemented missing `getPlatformVersion` handler and verified Android unit tests.
+* **Core**: Added `!kIsWeb` safeguards to prevent `UnsupportedError` when running in web-enabled Flutter projects.
 
 ## 1.4.0
 * **Major Feature (Phase 3)**: Added `executeInBackground` API for immediate, headless execution of Dart callbacks without attaching a UI.

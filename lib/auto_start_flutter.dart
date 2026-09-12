@@ -173,7 +173,7 @@ Future<Map<String, dynamic>> getLaunchArguments() async {
 /// Executes the given [callback] immediately in a headless background Flutter engine.
 /// [callback] must be a top-level or static function.
 Future<bool> executeInBackground(Function callback) async {
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     try {
       await Isolate.spawn((_) {
         callback();
