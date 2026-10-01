@@ -32,6 +32,9 @@ Import the package:
 import 'package:auto_start_flutter/auto_start_flutter.dart';
 ```
 
+### Android Build Requirements
+The plugin builds with Android Gradle Plugin 8.11.1, Kotlin 2.2.20 and JDK 17. Your app should use Gradle 8.14+ (matching Flutter's current minimums).
+
 ## Platform Support
 
 | Feature | Android | iOS | Windows | macOS | Linux |

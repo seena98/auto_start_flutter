@@ -1,7 +1,8 @@
 ## 1.5.0
 * **Feature (Exact Alarms - Android 12+)**: Added `canScheduleExactAlarms()` and `openExactAlarmSettings()` APIs to check and navigate to system "Alarms & reminders" settings for exact background alarms.
 * **Feature (Google Play Policy Compliant Battery Settings)**: Added `openBatteryOptimizationSettings()` navigating to the standard system battery optimization screen (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`), providing a 100% Google Play policy-safe alternative to direct dialog prompts.
-* **Android**: Migrated to Built-in Kotlin per Flutter breaking changes guide (removed Kotlin Gradle Plugin `kotlin-android` and replaced `kotlinOptions` with `kotlin.compilerOptions`).
+* **Android**: Bumped Android Gradle Plugin to 8.11.1 and Kotlin Gradle plugin to 2.2.20 (Flutter's current minimums); the plugin applies `kotlin-android` and uses `jvmToolchain(17)`.
+* **Android**: Example app now uses Gradle 8.14 and sets `android.newDsl=false` to stay compatible with AGP 9 DSL changes.
 * **Android**: Removed obsolete `jcenter()` repository from Gradle configuration.
 * **Android**: Removed deprecated `package` attribute from `AndroidManifest.xml`.
 * **Android**: Added ColorOS / Oppo auto-start manager intents for Realme devices.
@@ -9,6 +10,7 @@
 * **Cross-Platform**: Gracefully supported `openBatteryOptimizationSettings` across iOS, macOS, Windows, and Linux.
 * **Core**: Added `!kIsWeb` safeguards to prevent `UnsupportedError` when running in web-enabled Flutter projects.
 * **Example App**: Updated with interactive status checks and UI buttons for exact alarm management and policy-safe battery optimization settings.
+* **CI**: Build example APK with `--android-skip-build-dependency-validation` so builds pass on modern Flutter toolchains.
 * **Tests**: Added unit tests covering `canScheduleExactAlarms`, `openExactAlarmSettings`, and `openBatteryOptimizationSettings`.
 
 ## 1.4.0
