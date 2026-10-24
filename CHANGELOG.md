@@ -1,3 +1,7 @@
+## 1.5.1
+* **Refactor**: migrate android build configuration to gradle kotlin DSL (.kts)
+* **Android**: Built-in Kotlin migration.
+
 ## 1.5.0
 * **Feature (Exact Alarms - Android 12+)**: Added `canScheduleExactAlarms()` and `openExactAlarmSettings()` APIs to check and navigate to system "Alarms & reminders" settings for exact background alarms.
 * **Feature (Google Play Policy Compliant Battery Settings)**: Added `openBatteryOptimizationSettings()` navigating to the standard system battery optimization screen (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`), providing a 100% Google Play policy-safe alternative to direct dialog prompts.
