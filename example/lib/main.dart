@@ -4,21 +4,24 @@ import 'package:flutter/services.dart';
 import 'package:auto_start_flutter/auto_start_flutter.dart';
 
 @pragma('vm:entry-point')
-void myBootCallback() {
+Future<void> myBootCallback() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint("Boot Callback execution triggered! The device just booted.");
+  await AutoStart.completeBackgroundTask();
 }
 
 @pragma('vm:entry-point')
-void myScheduledTaskCallback() {
+Future<void> myScheduledTaskCallback() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint("Scheduled Task execution triggered! Running headlessly.");
+  await AutoStart.completeBackgroundTask();
 }
 
 @pragma('vm:entry-point')
-void myExecuteInBackgroundCallback() {
+Future<void> myExecuteInBackgroundCallback() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint("Execute In Background triggered! Running headlessly right now.");
+  await AutoStart.completeBackgroundTask();
 }
 
 void main() {
@@ -59,14 +62,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _checkExactAlarm() async {
-    bool canSchedule = await canScheduleExactAlarms();
+    bool canSchedule = await AutoStart.canScheduleExactAlarms();
     setState(() {
       _exactAlarmStatus = canSchedule ? "Allowed (Yes)" : "Denied (No)";
     });
   }
 
   Future<void> _openExactAlarm() async {
-    bool success = await openExactAlarmSettings();
+    bool success =
+        await AutoStart.openExactAlarmSettings() == SettingsResult.opened;
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(success
@@ -75,7 +79,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openBatteryOptimizationSettings() async {
-    bool success = await openBatteryOptimizationSettings();
+    bool success = await AutoStart.openBatteryOptimizationSettings() ==
+        SettingsResult.opened;
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(success
@@ -84,7 +89,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _checkLaunchArgs() async {
-    final args = await getLaunchArguments();
+    final args = await AutoStart.getLaunchArguments();
     if (args.isNotEmpty) {
       setState(() {
         _launchArgs = args.toString();
@@ -94,7 +99,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _getManufacturer() async {
-    String? manufacturer = await getDeviceManufacturer();
+    String? manufacturer = await AutoStart.getManufacturer();
     if (manufacturer != null) {
       setState(() {
         _manufacturer = manufacturer;
@@ -106,11 +111,12 @@ class _HomePageState extends State<HomePage> {
   Future<void> initAutoStart() async {
     try {
       //check auto-start availability.
-      var isAvailable = (await isAutoStartAvailable) ?? false;
+      var isAvailable = await AutoStart.isAutoStartSettingsAvailable();
       debugPrint("Auto start available: $isAvailable");
       //if available then navigate to auto-start setting page.
       if (isAvailable) {
-        bool success = await getAutoStartPermission();
+        bool success =
+            await AutoStart.openAutoStartSettings() == SettingsResult.opened;
         debugPrint("Auto start permission open success: $success");
       }
     } on PlatformException catch (e) {
@@ -120,7 +126,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _checkBatteryOptimization() async {
-    bool? isDisabled = await isBatteryOptimizationDisabled;
+    bool? isDisabled = await AutoStart.isBatteryOptimizationDisabled();
     setState(() {
       _batteryOptimizationStatus =
           isDisabled == true ? "Disabled (Good)" : "Enabled (Bad)";
@@ -128,11 +134,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _disableBatteryOptimization() async {
-    await disableBatteryOptimization();
+    await AutoStart.requestIgnoreBatteryOptimization();
   }
 
   Future<void> _openAutoStart() async {
-    bool success = await getAutoStartPermission();
+    bool success =
+        await AutoStart.openAutoStartSettings() == SettingsResult.opened;
     if (!success) {
       if (!mounted) return;
       // Now this context is below MaterialApp, so ScaffoldMessenger works.
@@ -142,7 +149,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openAppInfo() async {
-    await openAppInfo();
+    await AutoStart.openAppInfo();
   }
 
   final TextEditingController _packageNameController = TextEditingController();
@@ -162,10 +169,11 @@ class _HomePageState extends State<HomePage> {
           content: Text("Please enter both package and activity names")));
       return;
     }
-    bool success = await openCustomSetting(
-      packageName: _packageNameController.text,
-      activityName: _activityNameController.text,
-    );
+    bool success = await AutoStart.openCustomSetting(
+          packageName: _packageNameController.text,
+          activityName: _activityNameController.text,
+        ) ==
+        SettingsResult.opened;
     if (!success) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -174,14 +182,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _testRegisterBootCallback() async {
-    bool success = await registerBootCallback(myBootCallback);
+    bool success = await AutoStart.registerBootCallback(myBootCallback);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Boot Callback Registered: $success")));
   }
 
   Future<void> _testStartForegroundService() async {
-    bool success = await startForegroundService(
+    bool success = await AutoStart.startForegroundService(
       title: "Example Foreground Service",
       content: "This prevents the app from being killed.",
     );
@@ -191,7 +199,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _testStopForegroundService() async {
-    bool success = await stopForegroundService();
+    bool success = await AutoStart.stopForegroundService();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Stopped Foreground Service: $success")));
@@ -218,17 +226,19 @@ class _HomePageState extends State<HomePage> {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
 
-      bool success = await scheduleTask(scheduledDate, myScheduledTaskCallback,
+      final result = await AutoStart.scheduleTask(
+          scheduledDate, myScheduledTaskCallback,
           taskId: "test_task_${scheduledDate.millisecondsSinceEpoch}");
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content:
-              Text("Task Scheduled for ${scheduledDate.toLocal()}: $success")));
+          content: Text(
+              "Task Scheduled for ${scheduledDate.toLocal()}: ${result.name}")));
     }
   }
 
   Future<void> _testExecuteInBackground() async {
-    bool success = await executeInBackground(myExecuteInBackgroundCallback);
+    bool success =
+        await AutoStart.executeInBackground(myExecuteInBackgroundCallback);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Execute in Background: $success")));

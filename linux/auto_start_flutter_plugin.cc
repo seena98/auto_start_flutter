@@ -4,6 +4,8 @@
 #include <gtk/gtk.h>
 #include <sys/utsname.h>
 
+#include <glib/gstdio.h>
+
 #include <cstring>
 
 #include "auto_start_flutter_plugin_private.h"
@@ -56,6 +58,20 @@ auto_start_flutter_plugin_handle_method_call(AutoStartFlutterPlugin *self,
       response = FL_METHOD_RESPONSE(fl_method_error_response_new(
           "INVALID_ARGUMENTS", "Missing expected arguments", nullptr));
     }
+  } else if (strcmp(method, "cancelTask") == 0) {
+    FlValue *args = fl_method_call_get_args(method_call);
+    FlValue *id_val = args ? fl_value_lookup_string(args, "taskId") : nullptr;
+    if (id_val) {
+      response = cancel_task(fl_value_get_string(id_val));
+    } else {
+      response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+          "INVALID_ARGUMENTS", "Missing taskId", nullptr));
+    }
+  } else if (strcmp(method, "getScheduledTaskIds") == 0) {
+    response = get_scheduled_task_ids();
+  } else if (strcmp(method, "completeBackgroundTask") == 0) {
+    // Desktop background callbacks run in plain isolates; nothing to release.
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
   } else if (strcmp(method, "getLaunchArguments") == 0) {
     g_autoptr(FlValue) result = fl_value_new_map();
     // Proof of concept: return empty map for now.
@@ -169,7 +185,7 @@ FlMethodResponse *schedule_task(int64_t timestamp, const gchar *task_id,
   time_t t = (time_t)(timestamp / 1000);
   struct tm *tm_buf = gmtime(&t);
   char time_str[64];
-  strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", tm_buf);
+  strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S UTC", tm_buf);
 
   g_autofree gchar *timer_content = g_strdup_printf(
       "[Unit]\n"
@@ -187,14 +203,64 @@ FlMethodResponse *schedule_task(int64_t timestamp, const gchar *task_id,
   gboolean s2 = g_file_set_contents(timer_path, timer_content, -1, nullptr);
 
   if (s1 && s2) {
-    // Attempt to enable/start the timer via systemctl if possible, 
-    // but just writing the files is a good first step.
-    // In a real environment, we'd run: systemctl --user daemon-reload && systemctl --user enable --now timer_filename
+    // Best effort: a missing systemctl must not fail scheduling, the unit files are
+    // picked up on the next login.
+    g_spawn_command_line_sync("systemctl --user daemon-reload", nullptr, nullptr,
+                              nullptr, nullptr);
+    g_autofree gchar *enable_cmd = g_strdup_printf(
+        "systemctl --user enable --now %s", timer_filename);
+    g_spawn_command_line_sync(enable_cmd, nullptr, nullptr, nullptr, nullptr);
   }
 
   return FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_bool(s1 && s2)));
 }
 
+
+static gchar *systemd_user_dir() {
+  return g_build_filename(g_get_user_config_dir(), "systemd", "user", nullptr);
+}
+
+FlMethodResponse *cancel_task(const gchar *task_id) {
+  g_autofree gchar *systemd_dir = systemd_user_dir();
+  g_autofree gchar *service_filename =
+      g_strdup_printf("autostart_flutter_%s.service", task_id);
+  g_autofree gchar *timer_filename =
+      g_strdup_printf("autostart_flutter_%s.timer", task_id);
+  g_autofree gchar *service_path =
+      g_build_filename(systemd_dir, service_filename, nullptr);
+  g_autofree gchar *timer_path =
+      g_build_filename(systemd_dir, timer_filename, nullptr);
+
+  gboolean existed = g_file_test(timer_path, G_FILE_TEST_EXISTS);
+  g_autofree gchar *disable_cmd = g_strdup_printf(
+      "systemctl --user disable --now %s", timer_filename);
+  g_spawn_command_line_sync(disable_cmd, nullptr, nullptr, nullptr, nullptr);
+  g_unlink(timer_path);
+  g_unlink(service_path);
+  g_spawn_command_line_sync("systemctl --user daemon-reload", nullptr, nullptr,
+                            nullptr, nullptr);
+  return FL_METHOD_RESPONSE(
+      fl_method_success_response_new(fl_value_new_bool(existed)));
+}
+
+FlMethodResponse *get_scheduled_task_ids() {
+  g_autoptr(FlValue) ids = fl_value_new_list();
+  g_autofree gchar *systemd_dir = systemd_user_dir();
+  g_autoptr(GDir) dir = g_dir_open(systemd_dir, 0, nullptr);
+  if (dir) {
+    const gchar *prefix = "autostart_flutter_";
+    const gchar *suffix = ".timer";
+    const gchar *name;
+    while ((name = g_dir_read_name(dir)) != nullptr) {
+      if (g_str_has_prefix(name, prefix) && g_str_has_suffix(name, suffix)) {
+        g_autofree gchar *id = g_strndup(
+            name + strlen(prefix), strlen(name) - strlen(prefix) - strlen(suffix));
+        fl_value_append_take(ids, fl_value_new_string(id));
+      }
+    }
+  }
+  return FL_METHOD_RESPONSE(fl_method_success_response_new(ids));
+}
 
 static void auto_start_flutter_plugin_dispose(GObject *object) {
   G_OBJECT_CLASS(auto_start_flutter_plugin_parent_class)->dispose(object);

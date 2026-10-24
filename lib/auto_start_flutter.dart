@@ -1,260 +1,94 @@
-import 'dart:async';
-import 'dart:io';
-import 'dart:isolate';
-import 'dart:ui';
+import 'src/auto_start.dart';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+export 'auto_start_flutter_method_channel.dart';
+export 'auto_start_flutter_platform_interface.dart';
+export 'src/auto_start.dart';
 
-///initial AutoStart Class
-const MethodChannel _channel =
-    MethodChannel('com.techflow.co/auto_start_flutter');
+// The functions below are the original top-level API. They keep working and
+// delegate to [AutoStart], but are deprecated in favour of it.
 
 /// It checks if the phone has auto-start function.
-Future<bool?> get isAutoStartAvailable async {
-  ///check availability
-  //auto start availability
-  final bool? isAutoStartAvailable =
-      await _channel.invokeMethod('isAutoStartPermission');
-  return isAutoStartAvailable;
-}
+@Deprecated('Use AutoStart.isAutoStartSettingsAvailable()')
+Future<bool?> get isAutoStartAvailable =>
+    AutoStart.isAutoStartSettingsAvailable();
 
-///It navigates to settings => auto-start option where users can manually enable auto-start.
-///Returns [true] if the settings page was opened, [false] otherwise.
-Future<bool> getAutoStartPermission() async {
-  try {
-    final bool? success = await _channel.invokeMethod("permit-auto-start");
-    return success ?? false;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
+/// Opens the auto-start settings. Returns `true` if the page was opened.
+@Deprecated('Use AutoStart.openAutoStartSettings()')
+Future<bool> getAutoStartPermission() async =>
+    await AutoStart.openAutoStartSettings() == SettingsResult.opened;
 
-/// Open the App Info page in system settings.
-/// This is useful as a fallback if specific auto-start settings cannot be opened.
-Future<void> openAppInfo() async {
-  try {
-    await _channel.invokeMethod("openAppInfo");
-  } catch (e) {
-    debugPrint(e.toString());
-  }
-}
+/// Opens the App Info page in system settings.
+@Deprecated('Use AutoStart.openAppInfo()')
+Future<void> openAppInfo() => AutoStart.openAppInfo();
 
-/// Get the device manufacturer name.
-Future<String?> getDeviceManufacturer() async {
-  try {
-    return await _channel.invokeMethod("getDeviceManufacturer");
-  } catch (e) {
-    debugPrint(e.toString());
-    return null;
-  }
-}
+/// Gets the device manufacturer name.
+@Deprecated('Use AutoStart.getManufacturer()')
+Future<String?> getDeviceManufacturer() => AutoStart.getManufacturer();
 
-/// Open a custom setting by package name and activity name.
-/// This allows trying specific intents that are not yet natively supported by the plugin.
+/// Opens a custom setting by package name and activity name.
+@Deprecated('Use AutoStart.openCustomSetting()')
 Future<bool> openCustomSetting({
   required String packageName,
   required String activityName,
-}) async {
-  try {
-    final bool? success = await _channel.invokeMethod('openCustomSetting', {
-      'packageName': packageName,
-      'activityName': activityName,
-    });
-    return success ?? false;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
+}) async =>
+    await AutoStart.openCustomSetting(
+        packageName: packageName, activityName: activityName) ==
+    SettingsResult.opened;
 
-/// Check if battery optimization is disabled
-Future<bool?> get isBatteryOptimizationDisabled async {
-  final bool? isBatteryOptimizationDisabled =
-      await _channel.invokeMethod('isBatteryOptimizationDisabled');
-  return isBatteryOptimizationDisabled;
-}
+/// Checks if battery optimization is disabled; `null` if unknown.
+@Deprecated('Use AutoStart.isBatteryOptimizationDisabled()')
+Future<bool?> get isBatteryOptimizationDisabled =>
+    AutoStart.isBatteryOptimizationDisabled();
 
-/// Open battery optimization settings
-Future<void> disableBatteryOptimization() async {
-  try {
-    await _channel.invokeMethod("disableBatteryOptimization");
-  } catch (e) {
-    debugPrint(e.toString());
-  }
-}
+/// Prompts the user to exempt the app from battery optimization.
+@Deprecated('Use AutoStart.requestIgnoreBatteryOptimization()')
+Future<void> disableBatteryOptimization() =>
+    AutoStart.requestIgnoreBatteryOptimization();
 
 /// Opens the system battery optimization settings page.
-///
-/// Unlike [disableBatteryOptimization] which directly prompts the user with
-/// `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` (which is restricted by Google Play policy),
-/// this method opens the standard system battery optimization list (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`).
-/// Users can manually whitelist the app without triggering Google Play policy restrictions.
-///
-/// Returns [true] if the settings page was opened, [false] otherwise or on unsupported platforms.
-Future<bool> openBatteryOptimizationSettings() async {
-  try {
-    final bool? success =
-        await _channel.invokeMethod('openBatteryOptimizationSettings');
-    return success ?? false;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
+@Deprecated('Use AutoStart.openBatteryOptimizationSettings()')
+Future<bool> openBatteryOptimizationSettings() async =>
+    await AutoStart.openBatteryOptimizationSettings() == SettingsResult.opened;
 
-/// Checks whether the app has permission to schedule exact alarms (Android 12+ / API 31+).
-///
-/// Returns [true] on Android versions below 12, on non-Android platforms, or if permission is granted.
-/// Returns [false] on Android 12+ if exact alarm permission has been revoked.
-Future<bool> canScheduleExactAlarms() async {
-  try {
-    final bool? canSchedule =
-        await _channel.invokeMethod('canScheduleExactAlarms');
-    return canSchedule ?? true;
-  } catch (e) {
-    debugPrint(e.toString());
-    return true;
-  }
-}
+/// Whether exact alarms can be scheduled (Android 12+).
+@Deprecated('Use AutoStart.canScheduleExactAlarms()')
+Future<bool> canScheduleExactAlarms() => AutoStart.canScheduleExactAlarms();
 
-/// Opens the system settings page for exact alarm permissions (Android 12+ / API 31+).
-///
-/// On Android 12+, navigates the user to the app's "Alarms & reminders" settings page
-/// where they can grant permission to schedule exact alarms.
-///
-/// Returns [true] if the settings page was opened, [false] otherwise or on unsupported platforms.
-Future<bool> openExactAlarmSettings() async {
-  try {
-    final bool? success = await _channel.invokeMethod('openExactAlarmSettings');
-    return success ?? false;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
+/// Opens the exact alarm settings page (Android 12+).
+@Deprecated('Use AutoStart.openExactAlarmSettings()')
+Future<bool> openExactAlarmSettings() async =>
+    await AutoStart.openExactAlarmSettings() == SettingsResult.opened;
 
-/// Registers a callback to be executed headlessly when the device boots up.
-/// Only supported on Android in Phase 1.
-/// The [callback] must be a top-level or static function decorated with `@pragma('vm:entry-point')`.
-Future<bool> registerBootCallback(Function callback) async {
-  try {
-    final CallbackHandle? handle = PluginUtilities.getCallbackHandle(callback);
-    if (handle == null) {
-      debugPrint(
-          "Failed to get callback handle. Ensure the function is static or top-level and uses @pragma('vm:entry-point').");
-      return false;
-    }
-    final bool? success = await _channel.invokeMethod('registerBootCallback', {
-      'callbackHandle': handle.toRawHandle(),
-    });
-    return success ?? false;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
+/// Registers a callback to run headlessly on boot (Android).
+@Deprecated('Use AutoStart.registerBootCallback()')
+Future<bool> registerBootCallback(Function callback) =>
+    AutoStart.registerBootCallback(callback as BackgroundCallback);
 
-/// Starts a Foreground Service on Android.
-/// This attaches a persistent notification to the status bar, preventing the OS from killing the app when it goes to the background.
-/// [title] and [content] are used to populate the persistent notification.
-/// Only supported on Android 8.0+.
+/// Starts the keep-alive foreground service (Android).
+@Deprecated('Use AutoStart.startForegroundService()')
 Future<bool> startForegroundService(
-    {String title = "Running in background",
-    String content = "Keep-alive service is active."}) async {
-  try {
-    final bool? success =
-        await _channel.invokeMethod('startForegroundService', {
-      'title': title,
-      'content': content,
-    });
-    return success ?? false;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
+        {String title = "Running in background",
+        String content = "Keep-alive service is active."}) =>
+    AutoStart.startForegroundService(title: title, content: content);
 
-/// Stops the Foreground Service on Android, resolving the persistent notification.
-Future<bool> stopForegroundService() async {
-  try {
-    final bool? success = await _channel.invokeMethod('stopForegroundService');
-    return success ?? false;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
+/// Stops the keep-alive foreground service (Android).
+@Deprecated('Use AutoStart.stopForegroundService()')
+Future<bool> stopForegroundService() => AutoStart.stopForegroundService();
 
-/// Schedules a task to be executed headlessly at a specific time.
-/// [at] is the exact time the task should fire.
-/// [callback] must be a top-level or static function decorated with `@pragma('vm:entry-point')`.
-/// [taskId] is an optional unique identifier for the task.
+/// Schedules a task to run headlessly at [at].
+@Deprecated('Use AutoStart.scheduleTask(), which reports why scheduling failed')
 Future<bool> scheduleTask(DateTime at, Function callback,
-    {String? taskId}) async {
-  try {
-    final CallbackHandle? handle = PluginUtilities.getCallbackHandle(callback);
-    if (handle == null) {
-      debugPrint(
-          "Failed to get callback handle. Ensure the function is static or top-level.");
-      return false;
-    }
+        {String? taskId}) async =>
+    await AutoStart.scheduleTask(at, callback as BackgroundCallback,
+        taskId: taskId) ==
+    ScheduleResult.scheduled;
 
-    final bool? success = await _channel.invokeMethod('scheduleTask', {
-      'timestamp': at.millisecondsSinceEpoch,
-      'callbackHandle': handle.toRawHandle(),
-      'taskId': taskId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-    });
-    return success ?? false;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
+/// Returns the arguments the app was launched with.
+@Deprecated('Use AutoStart.getLaunchArguments()')
+Future<Map<String, dynamic>> getLaunchArguments() =>
+    AutoStart.getLaunchArguments();
 
-/// Returns the arguments the app was launched with (e.g., from a scheduled task or boot).
-/// Currently supported on Windows and planned for others.
-Future<Map<String, dynamic>> getLaunchArguments() async {
-  try {
-    final Map<dynamic, dynamic>? args =
-        await _channel.invokeMethod('getLaunchArguments');
-    return args?.cast<String, dynamic>() ?? {};
-  } catch (e) {
-    debugPrint(e.toString());
-    return {};
-  }
-}
-
-/// Executes the given [callback] immediately in a headless background Flutter engine.
-/// [callback] must be a top-level or static function.
-Future<bool> executeInBackground(Function callback) async {
-  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-    try {
-      await Isolate.spawn((_) {
-        callback();
-      }, null);
-      return true;
-    } catch (e) {
-      debugPrint("Isolate spawn error: $e");
-      return false;
-    }
-  }
-
-  final CallbackHandle? handle = PluginUtilities.getCallbackHandle(callback);
-  if (handle == null) {
-    debugPrint(
-        "Failed to get callback handle. Ensure the function is static or top-level.");
-    return false;
-  }
-
-  try {
-    final bool? result = await _channel.invokeMethod('executeInBackground', {
-      'callbackHandle': handle.toRawHandle(),
-    });
-    return result ?? false;
-  } catch (e) {
-    debugPrint(e.toString());
-    return false;
-  }
-}
+/// Executes [callback] immediately in a headless background engine.
+@Deprecated('Use AutoStart.executeInBackground()')
+Future<bool> executeInBackground(Function callback) =>
+    AutoStart.executeInBackground(callback as BackgroundCallback);

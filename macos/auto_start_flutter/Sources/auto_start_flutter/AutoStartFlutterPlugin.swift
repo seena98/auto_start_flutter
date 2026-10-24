@@ -6,7 +6,6 @@ import UserNotifications
 public class AutoStartFlutterPlugin: NSObject, FlutterPlugin, UNUserNotificationCenterDelegate {
     
     var launchArgs: [String: Any]? = nil
-    var backgroundEngines: [Int64: FlutterEngine] = [:]
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "com.techflow.co/auto_start_flutter", binaryMessenger: registrar.messenger)
@@ -104,6 +103,30 @@ public class AutoStartFlutterPlugin: NSObject, FlutterPlugin, UNUserNotification
                     }
                 }
             }
+        case "cancelTask":
+            guard let args = call.arguments as? [String: Any],
+                  let taskId = args["taskId"] as? String else {
+                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing taskId", details: nil))
+                return
+            }
+            let center = UNUserNotificationCenter.current()
+            let identifier = "auto_start_flutter_\(taskId)"
+            center.getPendingNotificationRequests { requests in
+                let existed = requests.contains { $0.identifier == identifier }
+                center.removePendingNotificationRequests(withIdentifiers: [identifier])
+                DispatchQueue.main.async { result(existed) }
+            }
+        case "getScheduledTaskIds":
+            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                let prefix = "auto_start_flutter_"
+                let ids = requests.map { $0.identifier }
+                    .filter { $0.hasPrefix(prefix) }
+                    .map { String($0.dropFirst(prefix.count)) }
+                DispatchQueue.main.async { result(ids) }
+            }
+        case "completeBackgroundTask":
+            // macOS runs background callbacks in plain Dart isolates; nothing to release.
+            result(nil)
         case "getLaunchArguments":
             result(launchArgs ?? [:])
             launchArgs = nil

@@ -17,3 +17,5 @@ FlMethodResponse *register_boot_callback();
 FlMethodResponse *schedule_task(int64_t timestamp, const gchar *task_id,
                                 int64_t callback_handle);
 
+FlMethodResponse *cancel_task(const gchar *task_id);
+FlMethodResponse *get_scheduled_task_ids();

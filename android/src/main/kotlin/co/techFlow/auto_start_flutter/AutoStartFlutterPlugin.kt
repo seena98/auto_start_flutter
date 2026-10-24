@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -19,9 +20,11 @@ import io.flutter.plugin.common.MethodChannel.Result
 class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var channel: MethodChannel
     private lateinit var context: Context
+    private lateinit var messenger: BinaryMessenger
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.techflow.co/auto_start_flutter")
+        messenger = flutterPluginBinding.binaryMessenger
+        channel = MethodChannel(messenger, "com.techflow.co/auto_start_flutter")
         channel.setMethodCallHandler(this)
         context = flutterPluginBinding.applicationContext
     }
@@ -74,13 +77,17 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
                 }
             }
             "disableBatteryOptimization" -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                    intent.data = Uri.parse("package:" + context.packageName)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    context.startActivity(intent)
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                        intent.data = Uri.parse("package:" + context.packageName)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        context.startActivity(intent)
+                    }
+                    result.success(null)
+                } catch (e: Exception) {
+                    result.error("BATTERY_OPTIMIZATION_ERROR", e.message, null)
                 }
-                result.success(null)
             }
             "openBatteryOptimizationSettings" -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -198,46 +205,37 @@ class AutoStartFlutterPlugin : FlutterPlugin, MethodCallHandler {
                 val taskId = call.argument<String>("taskId")
                 
                 if (timestamp != null && callbackHandle != null && taskId != null) {
-                    val success = scheduleAndroidAlarm(timestamp, callbackHandle, taskId)
-                    result.success(success)
+                    try {
+                        TaskScheduler.schedule(context, TaskScheduler.Task(taskId, timestamp, callbackHandle))
+                        result.success(true)
+                    } catch (e: TaskScheduler.ExactAlarmDeniedException) {
+                        result.error("EXACT_ALARM_DENIED", e.message, null)
+                    } catch (e: Exception) {
+                        Log.e("AutoStartPlugin", "Failed to schedule alarm: ${e.message}")
+                        result.error("SCHEDULE_ERROR", e.message, null)
+                    }
                 } else {
                     result.error("INVALID_ARGUMENT", "timestamp, callbackHandle, and taskId must not be null", null)
                 }
             }
+            "cancelTask" -> {
+                val taskId = call.argument<String>("taskId")
+                if (taskId != null) {
+                    result.success(TaskScheduler.cancel(context, taskId))
+                } else {
+                    result.error("INVALID_ARGUMENT", "taskId must not be null", null)
+                }
+            }
+            "getScheduledTaskIds" -> {
+                result.success(TaskScheduler.list(context).map { it.taskId })
+            }
+            "completeBackgroundTask" -> {
+                HeadlessEngineHelper.finish(messenger)
+                result.success(null)
+            }
             else -> {
                 result.notImplemented()
             }
-        }
-    }
-
-    private fun scheduleAndroidAlarm(timestamp: Long, callbackHandle: Long, taskId: String): Boolean {
-        return try {
-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
-            val intent = Intent(context, ScheduledTaskReceiver::class.java).apply {
-                putExtra(ScheduledTaskReceiver.EXTRA_CALLBACK_HANDLE, callbackHandle)
-                putExtra(ScheduledTaskReceiver.EXTRA_TASK_ID, taskId)
-            }
-            
-            val pendingIntent = android.app.PendingIntent.getBroadcast(
-                context,
-                taskId.hashCode(),
-                intent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-                } else {
-                    android.app.PendingIntent.FLAG_UPDATE_CURRENT
-                }
-            )
-            
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, timestamp, pendingIntent)
-            } else {
-                alarmManager.setExact(android.app.AlarmManager.RTC_WAKEUP, timestamp, pendingIntent)
-            }
-            true
-        } catch (e: Exception) {
-            Log.e("AutoStartPlugin", "Failed to schedule alarm: ${e.message}")
-            false
         }
     }
 

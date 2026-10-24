@@ -1,3 +1,20 @@
+## 1.6.0
+* **New API**: `AutoStart` class with consistent names and richer results. Methods that open settings return `SettingsResult` (`opened`, `notAvailable`, `unsupported`, `failed`) and `AutoStart.scheduleTask` returns `ScheduleResult` (`scheduled`, `exactAlarmDenied`, `invalidCallback`, `unsupported`, `failed`). Nothing throws.
+* **Deprecated (still working)**: every original top-level function (`getAutoStartPermission`, `isAutoStartAvailable`, `scheduleTask`, ...) is now `@Deprecated` and delegates to `AutoStart`, with the same signatures and `bool` results, so existing code keeps compiling. See the README migration table.
+* **Feature**: `AutoStart.cancelTask(taskId)` and `AutoStart.getScheduledTaskIds()` on Android, iOS, macOS, Linux and Windows (`getScheduledTaskIds` enumerates Task Scheduler entries).
+* **Feature (Android)**: Scheduled tasks are persisted and restored after reboot; tasks that came due while the device was off run on boot.
+* **Feature**: `AutoStart.completeBackgroundTask()` releases a headless engine when the callback finishes.
+* **Feature**: `AutoStart.getStatus()` returns a `BackgroundStatus` snapshot (manufacturer, auto-start, battery optimization, exact alarms).
+* **Fix**: All calls go through `AutoStartFlutterPlatform` (previously a dead template layer on a different channel name), so the plugin can be faked in tests.
+* **Fix**: Consistent error handling. Unsupported platforms no longer throw; `canScheduleExactAlarms` fails closed on real errors.
+* **Fix (Android)**: Headless Flutter engines are destroyed (on `completeBackgroundTask()` or after 5 minutes) instead of leaking, and `goAsync()` plus an optional wake lock (only used if your app declares `WAKE_LOCK`; the plugin declares no permissions) keep the process alive while the Dart callback runs from the boot/alarm receivers.
+* **Fix (Android)**: Exact alarm denial on Android 12+ is reported as `EXACT_ALARM_DENIED`; task ids no longer collide; `disableBatteryOptimization` no longer crashes when no activity can handle the intent.
+* **Fix (Linux)**: Scheduled timers are now enabled via `systemctl --user` and use UTC consistently.
+* **Fix (desktop)**: `executeInBackground` spawns the isolate through a top-level entry point and initialises the background binary messenger, so plugins that support background isolates now work inside the callback.
+* **Fix (iOS)**: Headless engines started by `executeInBackground` now have this plugin attached, so `completeBackgroundTask()` releases them.
+* **Tooling**: Raised SDK constraints to Dart 3.6 / Flutter 3.10, enabled `strict-casts`, `strict-raw-types` and `public_member_api_docs`, expanded tests, and moved the example to the new API.
+* **Note**: the Android, iOS and macOS builds were verified; the Windows and Linux native additions could not be compiled in the development environment, so please verify them on those platforms.
+
 ## 1.5.0
 * **Feature (Exact Alarms - Android 12+)**: Added `canScheduleExactAlarms()` and `openExactAlarmSettings()` APIs to check and navigate to system "Alarms & reminders" settings for exact background alarms.
 * **Feature (Google Play Policy Compliant Battery Settings)**: Added `openBatteryOptimizationSettings()` navigating to the standard system battery optimization screen (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS`), providing a 100% Google Play policy-safe alternative to direct dialog prompts.

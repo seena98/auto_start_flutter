@@ -172,6 +172,28 @@ void AutoStartFlutterPlugin::HandleMethodCall(
     }
     result->Error("INVALID_ARGUMENTS",
                   "Missing timestamp, taskId or callbackHandle");
+  } else if (method_call.method_name().compare("cancelTask") == 0) {
+    const auto *arguments =
+        std::get_if<flutter::EncodableMap>(method_call.arguments());
+    if (arguments) {
+      auto id_it = arguments->find(flutter::EncodableValue("taskId"));
+      if (id_it != arguments->end()) {
+        bool success =
+            CancelScheduledTaskWindows(std::get<std::string>(id_it->second));
+        result->Success(flutter::EncodableValue(success));
+        return;
+      }
+    }
+    result->Error("INVALID_ARGUMENTS", "Missing taskId");
+  } else if (method_call.method_name().compare("getScheduledTaskIds") == 0) {
+    flutter::EncodableList ids;
+    for (const auto &id : GetScheduledTaskIdsWindows()) {
+      ids.push_back(flutter::EncodableValue(id));
+    }
+    result->Success(flutter::EncodableValue(ids));
+  } else if (method_call.method_name().compare("completeBackgroundTask") == 0) {
+    // Desktop background callbacks run in plain isolates; nothing to release.
+    result->Success();
   } else if (method_call.method_name().compare("startForegroundService") == 0 ||
              method_call.method_name().compare("stopForegroundService") == 0) {
     // Foreground services are an Android-specific concept.
@@ -181,6 +203,99 @@ void AutoStartFlutterPlugin::HandleMethodCall(
   } else {
     result->NotImplemented();
   }
+}
+
+bool AutoStartFlutterPlugin::CancelScheduledTaskWindows(
+    const std::string &taskId) {
+  HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+  bool comInitialized = SUCCEEDED(hr);
+
+  ITaskService *pService = NULL;
+  hr = CoCreateInstance(CLSID_TaskScheduler, NULL, CLSCTX_INPROC_SERVER,
+                        IID_ITaskService, (void **)&pService);
+  if (FAILED(hr)) {
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  hr = pService->Connect(_variant_t(), _variant_t(), _variant_t(), _variant_t());
+  ITaskFolder *pRootFolder = NULL;
+  if (SUCCEEDED(hr)) {
+    hr = pService->GetFolder(_bstr_t(L"\\"), &pRootFolder);
+  }
+  pService->Release();
+  if (FAILED(hr) || !pRootFolder) {
+    if (comInitialized)
+      CoUninitialize();
+    return false;
+  }
+
+  hr = pRootFolder->DeleteTask(
+      (_bstr_t(L"AutoStartFlutter_") + _bstr_t(taskId.c_str())).GetBSTR(), 0);
+  pRootFolder->Release();
+  if (comInitialized)
+    CoUninitialize();
+  return SUCCEEDED(hr);
+}
+
+std::vector<std::string> AutoStartFlutterPlugin::GetScheduledTaskIdsWindows() {
+  std::vector<std::string> ids;
+  const std::wstring prefix = L"AutoStartFlutter_";
+
+  HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+  bool comInitialized = SUCCEEDED(hr);
+
+  ITaskService *pService = NULL;
+  hr = CoCreateInstance(CLSID_TaskScheduler, NULL, CLSCTX_INPROC_SERVER,
+                        IID_ITaskService, (void **)&pService);
+  if (FAILED(hr)) {
+    if (comInitialized)
+      CoUninitialize();
+    return ids;
+  }
+
+  hr = pService->Connect(_variant_t(), _variant_t(), _variant_t(), _variant_t());
+  ITaskFolder *pRootFolder = NULL;
+  if (SUCCEEDED(hr)) {
+    hr = pService->GetFolder(_bstr_t(L"\\"), &pRootFolder);
+  }
+  pService->Release();
+  if (FAILED(hr) || !pRootFolder) {
+    if (comInitialized)
+      CoUninitialize();
+    return ids;
+  }
+
+  IRegisteredTaskCollection *pTasks = NULL;
+  hr = pRootFolder->GetTasks(TASK_ENUM_HIDDEN, &pTasks);
+  pRootFolder->Release();
+  if (SUCCEEDED(hr) && pTasks) {
+    LONG count = 0;
+    pTasks->get_Count(&count);
+    // The collection is 1-based.
+    for (LONG i = 1; i <= count; i++) {
+      IRegisteredTask *pRegistered = NULL;
+      if (FAILED(pTasks->get_Item(_variant_t(i), &pRegistered)) ||
+          !pRegistered) {
+        continue;
+      }
+      BSTR name = NULL;
+      if (SUCCEEDED(pRegistered->get_Name(&name)) && name) {
+        std::wstring wname(name, SysStringLen(name));
+        if (wname.compare(0, prefix.size(), prefix) == 0) {
+          ids.push_back(Utf16ToUtf8(wname.substr(prefix.size())));
+        }
+        SysFreeString(name);
+      }
+      pRegistered->Release();
+    }
+    pTasks->Release();
+  }
+
+  if (comInitialized)
+    CoUninitialize();
+  return ids;
 }
 
 bool AutoStartFlutterPlugin::RegisterScheduledTaskWindows(

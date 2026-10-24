@@ -8,6 +8,7 @@
 #include <comdef.h>
 
 #include <memory>
+#include <vector>
 
 namespace auto_start_flutter {
 
@@ -29,6 +30,8 @@ class AutoStartFlutterPlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
+  bool CancelScheduledTaskWindows(const std::string &taskId);
+  std::vector<std::string> GetScheduledTaskIdsWindows();
   bool RegisterScheduledTaskWindows(int64_t timestamp,
                                    const std::string &taskId,
                                    int64_t callbackHandle);

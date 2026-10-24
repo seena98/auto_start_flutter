@@ -1,260 +1,248 @@
 # auto_start_flutter
 
-A Flutter plugin to help manage background execution permissions on **Android, iOS, macOS, Windows, and Linux** devices. It supports requesting "Auto-Start" permissions on specific Android OEM devices, checking "Background App Refresh" status on iOS, and managing "Startup Apps / Login Items" settings on Windows and macOS to ensure your app can run reliably in the background.
-
-## Features
-
-- **Auto-Start Permission**: 
-  - **Android**: Open manufacturer-specific "Auto-Start" or "App Launch" settings.
-  - **iOS**: Check Background App Refresh status.
-  - **Windows/macOS**: Open the "Startup Apps" or "Login Items" system settings.
-- **Battery Optimization**: Check if the app is exempt from battery optimizations and open settings to request exemption (Android) or power settings (Windows/macOS).
-- **Device Support**: 
-  - **Android**: Xiaomi, Redmi, Poco, Oppo, Vivo, Huawei, Honor, Samsung, ASUS, OnePlus, Nokia, LeTV, Meizu, HTC, Infinix, and more.
-  - **iOS**: All devices.
-  - **Windows**: Windows 10/11.
-  - **macOS**: macOS 10.14+ (limitations apply).
-  - **Linux**: Supported (stubbed methods due to varying Desktop Environments).
-- **Robustness**: The plugin attempts multiple known intents for each manufacturer to ensure the settings page opens correctly.
+A Flutter plugin to help manage background execution on **Android, iOS, macOS, Windows, and Linux**. It opens the OEM "Auto-Start" settings on Android, checks "Background App Refresh" on iOS, manages "Startup Apps / Login Items" on Windows and macOS, and can run Dart callbacks headlessly on boot, on a schedule, or on demand.
 
 [![pub package](https://img.shields.io/pub/v/auto_start_flutter.svg)](https://pub.dev/packages/auto_start_flutter)
 
+## Features
+
+- **Auto-Start settings**: manufacturer-specific "Auto-Start" / "App Launch" pages on Android (Xiaomi, Redmi, Poco, Oppo, Realme, Vivo, Huawei, Honor, Samsung, ASUS, OnePlus, Nokia, LeTV, Meizu, HTC, Infinix and more), Background App Refresh on iOS, Startup Apps on Windows, Login Items on macOS.
+- **Battery optimization**: check the exemption status and open the system settings (Android), power settings (Windows/macOS).
+- **Exact alarms** (Android 12+): check and request the permission.
+- **Boot callback**: run a headless Dart callback when the device starts.
+- **Scheduled tasks**: run a headless callback at an exact time; cancel and list tasks; Android tasks survive reboots.
+- **Headless execution**: run a callback immediately without a UI.
+- **Foreground service** keep-alive (Android).
+- **Status snapshot**: `AutoStart.getStatus()` collects everything above in one call.
+- **No surprise permissions**: the plugin declares **no** Android permissions. You add only those for the features you use (see [Android Permissions](#android-permissions)).
+
 ## Getting Started
 
-Add the package to your `pubspec.yaml`:
-
 ```yaml
-  auto_start_flutter: ^1.5.0
+dependencies:
+  auto_start_flutter: ^1.6.0
 ```
 
-Import the package:
 ```dart
 import 'package:auto_start_flutter/auto_start_flutter.dart';
 ```
 
-### Android Build Requirements
+### Android build requirements
 The plugin builds with Android Gradle Plugin 8.11.1, Kotlin 2.2.20 and JDK 17. Your app should use Gradle 8.14+ (matching Flutter's current minimums).
 
-## Platform Support
+## The `AutoStart` API
 
-| Feature | Android | iOS | Windows | macOS | Linux |
+All methods are static and **never throw**: unsupported platforms and native errors are reported through the return value.
+
+Methods that open a settings page return a `SettingsResult`:
+
+| Value | Meaning |
+|---|---|
+| `opened` | The page was opened. |
+| `notAvailable` | This device has no such page (e.g. no OEM auto-start manager). Fall back to `AutoStart.openAppInfo()`. |
+| `unsupported` | The feature doesn't exist on this platform. |
+| `failed` | The platform reported an error. |
+
+`AutoStart.scheduleTask` returns a `ScheduleResult`: `scheduled`, `exactAlarmDenied`, `invalidCallback`, `unsupported` or `failed`.
+
+### Platform support
+
+| Method | Android | iOS | Windows | macOS | Linux |
 | --- | --- | --- | --- | --- | --- |
-| `isAutoStartAvailable` | Checks manufacturer whitelist | Checks `UIBackgroundRefreshStatus` | Returns `true` | Returns `true` | Returns `true` |
-| `getAutoStartPermission` | Opens Auto Start / App Info | Opens App Settings | Opens Startup Apps | Opens Login Items | Returns `true` (No-op) |
-| `openAppInfo` | Opens App Info | Opens App Settings | Opens Apps & Features | Opens General Settings | Returns `true` (No-op) |
-| `getDeviceManufacturer` | Returns `Build.MANUFACTURER` | Returns "Apple" | Returns "Microsoft" | Returns "Apple" | Returns "Linux" |
-| `isBatteryOptimizationDisabled` | Checks doze mode status | Returns `true` (Always valid) | Returns `true` | Returns `true` | Returns `true` |
-| `disableBatteryOptimization` | Direct dialog prompt (`REQUEST_IGNORE...`) | Opens App Settings | Opens Power & Sleep | Opens Energy Saver | Returns `true` (No-op) |
-| `openBatteryOptimizationSettings` | Opens battery optimization list (Google Play safe) | Opens App Settings | Opens Power & Sleep | Opens Energy Saver | Returns `true` (No-op) |
-| `canScheduleExactAlarms` | Checks `AlarmManager.canScheduleExactAlarms()` (Android 12+) | Returns `true` | Returns `true` | Returns `true` | Returns `true` |
-| `openExactAlarmSettings` | Opens "Alarms & reminders" settings (Android 12+) | Returns `false` (No-op) | Returns `false` (No-op) | Returns `false` (No-op) | Returns `false` (No-op) |
-| `openCustomSetting` | Opens specific activity | **Not Supported** | **Not Supported** | **Not Supported** | **Not Supported** |
-| `registerBootCallback` | Uses `BOOT_COMPLETED` trigger | **Not Supported** | Writes to Startup Registry | Registers via `SMAppService` | Writes `-autostart` to `~/.config/autostart/` |
-| `startForegroundService` | Starts Foreground Service | **Not Supported** | Returns `false` (No-op) | Returns `false` (No-op) | Returns `false` (No-op) |
-| `executeInBackground` | Headless Engine | Headless Engine | Hidden Process | Headless Engine | Hidden Process |
+| `isAutoStartSettingsAvailable` | Manufacturer has an auto-start page | Background App Refresh available | `true` | `true` | `true` |
+| `openAutoStartSettings` | Auto Start page | App Settings | Startup Apps | Login Items | No-op |
+| `openAppInfo` | App Info | App Settings | Apps & Features | General Settings | No-op |
+| `getManufacturer` | `Build.MANUFACTURER` | "Apple" | "Microsoft" | "Apple" | "Linux" |
+| `isBatteryOptimizationDisabled` | Doze exemption status | `true` | `true` | `true` | `true` |
+| `requestIgnoreBatteryOptimization` | Direct system dialog | App Settings | Power & Sleep | Energy Saver | No-op |
+| `openBatteryOptimizationSettings` | Battery optimization list | App Settings | Power & Sleep | Energy Saver | No-op |
+| `canScheduleExactAlarms` | `AlarmManager` check (Android 12+) | `true` | `true` | `true` | `true` |
+| `openExactAlarmSettings` | "Alarms & reminders" (Android 12+) | not available | not available | not available | not available |
+| `openCustomSetting` | Opens an activity | unsupported | unsupported | unsupported | unsupported |
+| `registerBootCallback` | `BOOT_COMPLETED` + headless engine | unsupported | Startup registry | `SMAppService` | `~/.config/autostart/` |
+| `startForegroundService` | Foreground service | `false` | `false` | `false` | `false` |
+| `scheduleTask` / `cancelTask` / `getScheduledTaskIds` | `AlarmManager` (persisted across reboots) | Local notification | Task Scheduler | Local notification | `systemd` user timers |
+| `executeInBackground` | Headless engine | Headless engine | Background isolate | Background isolate | Background isolate |
+| `completeBackgroundTask` | Releases the engine | Releases the engine | No-op | No-op | No-op |
+
+> **Note**: Standard Android APIs can't tell whether "Auto Start" is actually enabled. `isAutoStartSettingsAvailable` only reports that the device has such a page. Only iOS lets you verify the real background refresh status.
 
 ## Usage
-### AutoStart Permission / Background Refresh
-On **Android**, this checks if the device is from a manufacturer known to have aggressive auto-start restrictions and redirects the user to the appropriate settings page.
-On **iOS**, this checks if **Background App Refresh** is enabled. If not, it redirects the user to the App Settings page where they can enable it.
-On **Windows** and **macOS**, this opens the **Startup Apps** or **Login Items** system settings, where users can toggle your app's startup status.
 
+### Auto-start settings
 ```dart
-import 'package:auto_start_flutter/auto_start_flutter.dart';
-// ...
-
-// 1. Check if auto-start permission is available / relevant
-// Android: Returns true for Xiaomi, Oppo, Vivo, etc.
-// iOS: Returns true if Background App Refresh is available (not restricted).
-var isAvailable = await isAutoStartAvailable;
-
-if (isAvailable == true) {
-    // 2. Request permission / Open Settings
-    // Android: Opens Auto Start settings or App Info.
-    // iOS: Opens App Settings.
-    // Windows/macOS: Opens Startup Apps / Login Items settings.
-    await getAutoStartPermission();
+if (await AutoStart.isAutoStartSettingsAvailable()) {
+  final result = await AutoStart.openAutoStartSettings();
+  if (result == SettingsResult.notAvailable) {
+    await AutoStart.openAppInfo(); // generic fallback
+  }
 }
 ```
 
-### Other Features
-2. **App Info**: Open the system settings page for the app.
-    ```dart
-    // Android: Opens App Info
-    // iOS: Opens App Settings
-    await openAppInfo();
-    ```
+### Other helpers
+```dart
+String? manufacturer = await AutoStart.getManufacturer(); // "Xiaomi", "Apple", ...
 
-3. **Device Manufacturer**: Get the device manufacturer.
-    ```dart
-    String? manufacturer = await getDeviceManufacturer(); 
-    // e.g. "Xiaomi", "Apple", "Samsung"
-    ```
+// Android only: open a specific hidden settings activity you know about.
+await AutoStart.openCustomSetting(
+  packageName: 'com.android.settings',
+  activityName: r'com.android.settings.Settings$PowerUsageSummaryActivity',
+);
+```
 
-4. **Custom Settings (Android Only)**: If you know the specific package and activity name for a setting page on a specific device, you can attempt to open it directly.
-    ```dart
-    // Example: Try opening a specific hidden setting
-    await openCustomSetting(
-      packageName: 'com.android.settings',
-      activityName: 'com.android.settings.Settings\$PowerUsageSummaryActivity',
-    );
-    ```
+### One-call status
+```dart
+final status = await AutoStart.getStatus();
+// status.manufacturer, status.isAutoStartAvailable,
+// status.isBatteryOptimizationDisabled, status.canScheduleExactAlarms
+```
 
-### Background Execution & Boot
-The plugin provides advanced lifecycle hooks to natively launch your app in the background across platforms.
+### Boot callback
+Runs a headless Dart callback (Android) or launches the app (desktop) when the device starts.
 
-1. **Boot Completed Trigger (`registerBootCallback`)**: Run a headless Dart callback or launch your app the moment the device turns on.
-    * **Android**: Uses the `BOOT_COMPLETED` intent and spawns a secure background `FlutterEngine`.
-    * **Windows**: Natively writes the executable path with an `--autostart` flag directly into the `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` registry.
-    * **macOS**: Uses the modern Apple `SMAppService.mainApp.register()` API to register the application into Login Items seamlessly (macOS 13+).
-    * **Linux**: Generates a standardized X-GNOME `.desktop` file natively inside `~/.config/autostart/`.
+```dart
+// Must be a top-level or static function.
+@pragma('vm:entry-point')
+Future<void> myBootCallback() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // ... do work ...
+  await AutoStart.completeBackgroundTask(); // release the headless engine
+}
 
-    ```dart
-    import 'dart:ui';
-    import 'package:flutter/material.dart';
+await AutoStart.registerBootCallback(myBootCallback);
+```
+Android needs the `RECEIVE_BOOT_COMPLETED` permission ([see below](#android-permissions)).
 
-    // 1. Must be a top-level or static function
-    @pragma('vm:entry-point')
-    void myBootCallback() {
-      WidgetsFlutterBinding.ensureInitialized();
-      print("Device booted! Running in the background...");
-    }
+### Scheduled tasks
+```dart
+final result = await AutoStart.scheduleTask(
+  DateTime.now().add(const Duration(minutes: 5)),
+  myScheduledTaskCallback,
+  taskId: 'my_task_1', // optional; scheduling the same id again replaces the task
+);
 
-    // 2. Register it somewhere in your app (e.g. main.dart)
-    await registerBootCallback(myBootCallback);
-    ```
-    *Note: On Android, you must manually add the `RECEIVE_BOOT_COMPLETED` permission to your `AndroidManifest.xml` (see Mandatory Setup below).*
+switch (result) {
+  case ScheduleResult.scheduled:
+    break;
+  case ScheduleResult.exactAlarmDenied:
+    await AutoStart.openExactAlarmSettings(); // Android 12+
+  default:
+    // invalidCallback / unsupported / failed
+}
 
-2. **Foreground Service Keep-Alive (Android)**: Start a foreground service to prevent Android from killing your app when it goes to the background. This will pin a persistent notification to the user's status bar.
-    ```dart
-    // Start the service
-    await startForegroundService(
-      title: "Syncing Data",
-      content: "Do not close the app.",
-    );
+await AutoStart.cancelTask('my_task_1');
+final pending = await AutoStart.getScheduledTaskIds();
+```
 
-    // Stop the service when done
-    await stopForegroundService();
-    ```
-    *Note: On Android, you must manually add the `FOREGROUND_SERVICE` permission to your `AndroidManifest.xml` (see Mandatory Setup below).*
+- **Android**: uses `AlarmManager` and runs the callback headlessly even in Doze. Tasks are persisted and re-registered after a reboot; tasks that came due while the device was off run on boot.
+- **iOS & macOS**: Apple doesn't allow generic headless wakes at exact times, so a local notification is scheduled (the user is asked for notification permission on first use). When the user taps it, the app opens and `getLaunchArguments()` contains `scheduledTaskId` and `callbackHandle`.
+- **Windows**: Windows Task Scheduler. **Linux**: `systemd` user timers.
 
-3. **Exact Scheduling & Alarms (`scheduleTask`)**: Schedule a task to run precisely at a future timestamp.
-    * **Android**: Uses `AlarmManager` for highly accurate background wakes, triggering a headless Dart callback even in Doze mode.
-    * **iOS & macOS**: Apple strictly prohibits generic headless background wakes at exact times. Therefore, this API relies on `UNUserNotificationCenter`. It will schedule a Local Notification for the exact timestamp. When the user taps the notification, the app opens, and `getLaunchArguments` will contain the `taskId` and `callbackHandle`. This will prompt the user for Notification Permissions the first time it is called.
-    * **Windows**: Natively interfaces with the Windows Task Scheduler COM API.
-    * **Linux**: Automatically manages `systemd` user timers.
+```dart
+// On startup, check whether a scheduled task launched the app.
+final args = await AutoStart.getLaunchArguments(); // iOS, macOS, Windows
+if (args['scheduledTaskId'] == 'my_task_1') { ... }
+```
 
-    ```dart
-    final at = DateTime.now().add(Duration(minutes: 5));
-    bool success = await scheduleTask(at, myScheduledTaskCallback, taskId: "my_task_1");
-    
-    // On app startup, check if we were launched by a scheduled task
-    final args = await getLaunchArguments();
-    if (args['scheduledTaskId'] == 'my_task_1') {
-      print("Woke up from scheduled task!");
-    }
-    ```
+**Exact alarms (Android 12+)**
+```dart
+if (!await AutoStart.canScheduleExactAlarms()) {
+  await AutoStart.openExactAlarmSettings(); // "Alarms & reminders" page
+}
+```
 
-    **Exact Alarm Permissions (Android 12+ / API 31+)**:
-    Starting in Android 12, apps scheduling exact alarms must verify permission:
-    ```dart
-    // Check if exact alarms can be scheduled
-    bool canSchedule = await canScheduleExactAlarms();
+### Headless execution
+Runs a callback immediately, without a UI.
 
-    if (!canSchedule) {
-      // Guide user to the system "Alarms & reminders" settings page
-      await openExactAlarmSettings();
-    }
-    ```
+```dart
+@pragma('vm:entry-point')
+Future<void> myHeadlessTask() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // ... do work ...
+  await AutoStart.completeBackgroundTask();
+}
 
-4. **Headless Execution (`executeInBackground`) (Phase 3)**: Execute a Dart callback immediately in the background without bringing the app to the foreground or attaching a UI.
-    * **Android/Apple**: Instantiates a dedicated headless `FlutterEngine` / Isolate.
-    * **Desktop (Windows/Linux)**: Spawns a hidden background process via the native executable.
+await AutoStart.executeInBackground(myHeadlessTask);
+```
 
-    ```dart
-    // 1. Must be a top-level or static function
-    @pragma('vm:entry-point')
-    void myHeadlessTask() {
-      WidgetsFlutterBinding.ensureInitialized();
-      print("Running in the background instantly!");
-    }
+- **Android / iOS**: a dedicated headless `FlutterEngine`. Call `AutoStart.completeBackgroundTask()` at the end of the callback to destroy it immediately; otherwise Android destroys it after 5 minutes.
+- **Desktop**: a background Dart isolate. Plugins that support background isolates work; there is no UI.
 
-    // 2. Trigger execution
-    await executeInBackground(myHeadlessTask);
-    ```
+### Foreground service (Android)
+Keeps the app alive with a persistent notification.
+```dart
+await AutoStart.startForegroundService(
+  title: 'Syncing data',
+  content: 'Do not close the app.',
+);
+await AutoStart.stopForegroundService();
+```
 
-### Battery Optimization (Android, Windows, macOS, Linux)
-Android's Doze mode and App Standby can restrict background processing. On Windows and macOS, energy/power settings can similarly affect background performance.
+### Battery optimization
+Android's Doze and App Standby restrict background work; Windows/macOS power settings can too.
 
-1. **Check Status**: Check if your app is already ignoring battery optimizations.
-    ```dart
-    bool isExempt = await isBatteryOptimizationDisabled ?? false;
-    print("Battery Optimization Disabled: $isExempt");
-    ```
+```dart
+final exempt = await AutoStart.isBatteryOptimizationDisabled() ?? false;
 
-2. **Open Battery Optimization Settings (Recommended & Google Play Safe)**:
-    Navigates the user to the standard system battery optimization list (`ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` on Android). This **does not require** declaring high-risk permissions or justifying policies in Google Play Console.
-    ```dart
-    if (!isExempt) {
-      await openBatteryOptimizationSettings();
-    }
-    ```
+if (!exempt) {
+  // Recommended and Google Play safe: opens the system battery optimization list.
+  await AutoStart.openBatteryOptimizationSettings();
+}
+```
 
-3. **Direct Dialog Exemption (Requires Policy Declaration)**:
-    On Android 6.0+, prompts the user directly via a system dialog using `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`.
-    > [!WARNING]
-    > Google Play strictly limits apps requesting direct battery exemption dialogs. Only use `disableBatteryOptimization()` if your app qualifies under Google Play exemption policies. Otherwise, use `openBatteryOptimizationSettings()`.
-    ```dart
-    if (!isExempt) {
-      await disableBatteryOptimization();
-    }
-    ```
+Direct dialog (`ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`):
+> [!WARNING]
+> Google Play strictly limits which apps may request the direct exemption dialog. Only use `requestIgnoreBatteryOptimization()` if your app qualifies; otherwise use `openBatteryOptimizationSettings()`.
+```dart
+await AutoStart.requestIgnoreBatteryOptimization();
+```
 
-## Platform Support
-| Platform | Supported | Notes |
-|----------|-----------|-------|
-| Android  | ✅         | Supports custom OEM intents and standard battery optimization settings. |
-| iOS      | ✅         | Checks `UIBackgroundRefreshStatus` and opens App Settings. |
-| Windows  | ✅         | Opens Startup Apps settings. |
-| macOS    | ✅         | Opens Login Items settings. |
-| Linux    | ✅         | Basic support. Most methods return logical defaults as DE APIs vary wildly. |
+## Android Permissions
 
-> **Note**: Standard Android APIs do not allow checking if "Auto Start" is actually enabled. `isAutoStartAvailable` only returns `true` if the device manufacturer is on the supported list (e.g. Xiaomi, Oppo). On Windows and macOS, `isAutoStartAvailable` returns `true` to indicate that the "Startup Apps" / "Login Items" setting is accessible. Only iOS allows verifying the actual background refresh status programmatically.
+The plugin declares **no permissions**, so you only ship what you use. Add the ones for the features you enable to `android/app/src/main/AndroidManifest.xml`. Features whose permission is missing fail gracefully (a `false` / error result); they never crash the app.
 
-## Mandatory Setup (Android)
-To keep the plugin lightweight and privacy-focused, permissions are no longer included by default. You must add the permissions required for the features you intend to use to your `android/app/src/main/AndroidManifest.xml`.
+| Feature | Permission(s) | Required? |
+|---|---|---|
+| `registerBootCallback`, reboot-persistent `scheduleTask` | `RECEIVE_BOOT_COMPLETED` | Yes |
+| `startForegroundService` | `FOREGROUND_SERVICE`; on Android 14+ also `FOREGROUND_SERVICE_SPECIAL_USE`; on Android 13+ `POST_NOTIFICATIONS` to show the notification | Yes |
+| `scheduleTask` | `SCHEDULE_EXACT_ALARM`, or `USE_EXACT_ALARM` (Android 13+, only for alarm/calendar apps per Google Play policy) | Yes |
+| `requestIgnoreBatteryOptimization` | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Yes |
+| Headless callbacks (boot, scheduled, `executeInBackground`) | `WAKE_LOCK` | Optional: without it the callback still runs, but the device may go back to sleep before it finishes |
+| `openBatteryOptimizationSettings`, `openAutoStartSettings`, `openAppInfo` | none | - |
 
-### 1. Boot Completed Trigger
-Required for `registerBootCallback`.
 ```xml
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-```
-
-### 2. Foreground Service
-Required for `startForegroundService`.
-```xml
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<!-- For Android 14+ -->
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-```
-
-### 3. Exact Scheduling & Alarms (Phase 2)
-Required for `scheduleTask`.
-```xml
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-<!-- For Android 13+ -->
 <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
-```
-
-### 4. Battery Optimization Exemption
-Required for `disableBatteryOptimization` (direct dialog prompt):
-```xml
 <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+<uses-permission android:name="android.permission.WAKE_LOCK" />
 ```
-*Note: If you use `openBatteryOptimizationSettings()`, no special permission is required in your `AndroidManifest.xml`!*
 
-### 5. Headless Execution (Phase 3)
-No special permissions are strictly required for `executeInBackground` to spin up the background isolate. However, if your headless task requires internet access or long-running CPU locks, ensure standard Flutter network permissions or battery optimization exemptions are handled.
+## Migrating from the top-level functions (1.6.0)
+
+The original top-level functions still work but are `@Deprecated`. They keep their signatures and `bool` results and delegate to `AutoStart`.
+
+| Deprecated | Replacement |
+|---|---|
+| `isAutoStartAvailable` | `AutoStart.isAutoStartSettingsAvailable()` |
+| `getAutoStartPermission()` | `AutoStart.openAutoStartSettings()` → `SettingsResult` |
+| `openAppInfo()` | `AutoStart.openAppInfo()` |
+| `getDeviceManufacturer()` | `AutoStart.getManufacturer()` |
+| `openCustomSetting(...)` | `AutoStart.openCustomSetting(...)` → `SettingsResult` |
+| `isBatteryOptimizationDisabled` | `AutoStart.isBatteryOptimizationDisabled()` |
+| `disableBatteryOptimization()` | `AutoStart.requestIgnoreBatteryOptimization()` |
+| `openBatteryOptimizationSettings()` | `AutoStart.openBatteryOptimizationSettings()` |
+| `canScheduleExactAlarms()`, `openExactAlarmSettings()`, `registerBootCallback`, `startForegroundService`, `stopForegroundService`, `executeInBackground`, `getLaunchArguments` | same names on `AutoStart` |
+| `scheduleTask(...)` → `bool` | `AutoStart.scheduleTask(...)` → `ScheduleResult` |
+
+New in 1.6.0 (only on `AutoStart`): `cancelTask`, `getScheduledTaskIds`, `completeBackgroundTask`, `getStatus`.
+
+## Testing
+
+All calls go through `AutoStartFlutterPlatform`. In tests, extend it and assign `AutoStartFlutterPlatform.instance` to fake the plugin.
 
 ## Contributing
 If you find any issues or would like to add support for more devices, please file an issue or pull request on GitHub.
